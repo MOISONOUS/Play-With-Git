@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git Cheat Sheet</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #21262d;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #f05033;
+  --blue: #58a6ff;
+  --green: #3fb950;
+  --yellow: #e3b341;
+  --purple: #bc8cff;
+  --red: #f85149;
+  --cyan: #39c5cf;
+  --card-radius: 12px;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── TOP BAR ─────────────────────────────────────── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(13,17,23,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+  padding: 12px 24px;
+}
+.topbar-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 18px; font-weight: 700; color: var(--text);
+  text-decoration: none; white-space: nowrap;
+}
+.topbar-logo svg { width: 28px; height: 28px; }
+.topbar-search {
+  flex: 1; max-width: 480px;
+  position: relative;
+}
+.topbar-search input {
+  width: 100%; padding: 8px 14px 8px 36px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-size: 13px;
+  outline: none; transition: border-color .15s;
+}
+.topbar-search input:focus { border-color: var(--blue); }
+.topbar-search input::placeholder { color: var(--muted); }
+.topbar-search .search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); pointer-events: none;
+}
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.badge {
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+}
+.no-results-msg {
+  display: none; text-align: center; padding: 60px 20px;
+  color: var(--muted); font-size: 15px;
+}
+
+/* ── LAYOUT ──────────────────────────────────────── */
+.layout { display: flex; min-height: calc(100vh - 57px); }
+
+/* ── SIDEBAR ─────────────────────────────────────── */
+.sidebar {
+  width: 220px; flex-shrink: 0;
+  position: sticky; top: 57px; height: calc(100vh - 57px);
+  overflow-y: auto; padding: 20px 0;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.sidebar-label {
+  padding: 4px 16px 2px;
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--muted);
+}
+.sidebar-link {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 16px; color: var(--muted);
+  text-decoration: none; font-size: 13px;
+  border-left: 2px solid transparent;
+  transition: all .15s; cursor: pointer;
+}
+.sidebar-link:hover { color: var(--text); background: var(--surface2); }
+.sidebar-link.active { color: var(--text); border-left-color: var(--accent); background: var(--surface2); }
+.sidebar-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── MAIN CONTENT ────────────────────────────────── */
+.main { flex: 1; padding: 32px 40px 80px; max-width: 1100px; }
+
+.section { margin-bottom: 56px; }
+.section-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 24px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.section-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.section-title { font-size: 20px; font-weight: 700; }
+.section-subtitle { font-size: 13px; color: var(--muted); }
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+  gap: 20px;
+}
+
+/* ── COMMAND CARD ────────────────────────────────── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--card-radius); overflow: hidden;
+  transition: border-color .15s, transform .15s;
+}
+.card:hover { border-color: #444c56; transform: translateY(-1px); }
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.card-title { font-size: 15px; font-weight: 700; font-family: var(--font-mono); color: var(--text); }
+.card-tag {
+  font-size: 10px; font-weight: 600; padding: 2px 8px;
+  border-radius: 12px; border: 1px solid;
+}
+.card-body { padding: 14px 16px; }
+.card-desc { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+
+/* ── DIAGRAM ─────────────────────────────────────── */
+.diagram-wrap {
+  background: #0a0e14; border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 16px; margin-bottom: 12px;
+  overflow-x: auto;
+}
+.diagram-label { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: .5px; margin-bottom: 6px; text-transform: uppercase; }
+.diagram-wrap svg { display: block; }
+
+/* ── CODE EXAMPLES ───────────────────────────────── */
+.examples { display: flex; flex-direction: column; gap: 6px; }
+.example {
+  display: flex; align-items: stretch;
+  background: #0a0e14; border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden;
+}
+.example-code {
+  flex: 1; padding: 8px 12px;
+  font-family: var(--font-mono); font-size: 12px;
+  color: var(--text); white-space: pre-wrap; word-break: break-all;
+  line-height: 1.5;
+}
+.example-comment { color: var(--muted); font-style: italic; }
+.copy-btn {
+  padding: 0 12px; background: transparent;
+  border: none; border-left: 1px solid var(--border);
+  cursor: pointer; color: var(--muted); font-size: 12px;
+  transition: all .15s; flex-shrink: 0; display: flex; align-items: center; gap: 4px;
+}
+.copy-btn:hover { background: var(--surface2); color: var(--green); }
+.copy-btn.copied { color: var(--green); }
+.copy-btn svg { width: 13px; height: 13px; }
+
+/* ── SECTION COLORS ──────────────────────────────── */
+.color-orange { color: #f05033; background: rgba(240,80,51,.12); border-color: rgba(240,80,51,.3); }
+.color-blue   { color: #58a6ff; background: rgba(88,166,255,.12); border-color: rgba(88,166,255,.3); }
+.color-green  { color: #3fb950; background: rgba(63,185,80,.12); border-color: rgba(63,185,80,.3); }
+.color-purple { color: #bc8cff; background: rgba(188,140,255,.12); border-color: rgba(188,140,255,.3); }
+.color-yellow { color: #e3b341; background: rgba(227,179,65,.12); border-color: rgba(227,179,65,.3); }
+.color-red    { color: #f85149; background: rgba(248,81,73,.12); border-color: rgba(248,81,73,.3); }
+.color-cyan   { color: #39c5cf; background: rgba(57,197,207,.12); border-color: rgba(57,197,207,.3); }
+.color-pink   { color: #ff7eb6; background: rgba(255,126,182,.12); border-color: rgba(255,126,182,.3); }
+.bg-orange { background: rgba(240,80,51,.15); }
+.bg-blue   { background: rgba(88,166,255,.15); }
+.bg-green  { background: rgba(63,185,80,.15); }
+.bg-purple { background: rgba(188,140,255,.15); }
+.bg-yellow { background: rgba(227,179,65,.15); }
+.bg-red    { background: rgba(248,81,73,.15); }
+.bg-cyan   { background: rgba(57,197,207,.15); }
+.bg-pink   { background: rgba(255,126,182,.15); }
+
+/* ── HIDDEN ──────────────────────────────────────── */
+.card.hidden { display: none; }
+.section.all-hidden { display: none; }
+
+/* ── SCROLLBAR ───────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { padding: 20px 16px 60px; }
+  .cards-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <a class="topbar-logo" href="#">
+    <svg viewBox="0 0 92 92" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill="#F05033" d="M90.155 41.965 50.036 1.846a5.918 5.918 0 0 0-8.372 0l-8.328 8.33 10.566 10.566a7.03 7.03 0 0 1 7.23 1.684 7.043 7.043 0 0 1 1.673 7.277l10.183 10.184a7.026 7.026 0 0 1 7.278 1.672 7.044 7.044 0 0 1 0 9.952 7.049 7.049 0 0 1-9.956 0 7.054 7.054 0 0 1-1.528-7.664l-9.5-9.498V59.36a7.044 7.044 0 0 1 1.86 11.29 7.048 7.048 0 0 1-9.955 0 7.044 7.044 0 0 1 0-9.951 7.03 7.03 0 0 1 2.304-1.537V33.926a7.031 7.031 0 0 1-2.304-1.537 7.054 7.054 0 0 1-1.522-7.682L32.016 14.13 1.845 44.297a5.918 5.918 0 0 0 0 8.372L41.964 92.64a5.918 5.918 0 0 0 8.372 0L90.155 52.52a5.918 5.918 0 0 0 0-8.555"/>
+    </svg>
+    Git Cheat Sheet
+  </a>
+  <div class="topbar-search">
+    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Search commands, e.g. rebase, stash…" autocomplete="off">
+  </div>
+  <div class="topbar-right">
+    <span class="badge" id="cmdCount"></span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <div class="no-results-msg" id="noResults">No commands match your search.</div>
+  </main>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  SVG DIAGRAM HELPERS
+// ─────────────────────────────────────────────────────────────
+const UNIT = 52, R = 13;
+
+function pt(col, row) {
+  return { x: col * UNIT + 24, y: row * UNIT + 26 };
+}
+
+function svgWrap(w, h, content) {
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="font-family:monospace">
+  <defs>
+    <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#555"/>
+    </marker>
+    <marker id="arr-b" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#58a6ff"/>
+    </marker>
+    <marker id="arr-g" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#3fb950"/>
+    </marker>
+  </defs>
+  ${content}
+</svg>`;
+}
+
+function commit(col, row, hash, color='#444c56', stroke='#6e7681') {
+  const {x,y} = pt(col, row);
+  return `<circle cx="${x}" cy="${y}" r="${R}" fill="${color}" stroke="${stroke}" stroke-width="1.5"/>
+  <text x="${x}" y="${y+4}" text-anchor="middle" fill="#e6edf3" font-size="8" font-weight="600">${hash}</text>`;
+}
+
+function edge(c1, r1, c2, r2, color='#444c56', dashed=false) {
+  const a = pt(c1, r1), b = pt(c2, r2);
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len = Math.sqrt(dx*dx + dy*dy);
+  const nx = dx/len, ny = dy/len;
+  const x1 = a.x + nx*(R+1), y1 = a.y + ny*(R+1);
+  const x2 = b.x - nx*(R+3), y2 = b.y - ny*(R+3);
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-dasharray="${dashed?'5,3':''}" marker-end="url(#arr)"/>`;
+}
+
+function edgeCurve(c1, r1, c2, r2, color='#444c56') {
+  const a = pt(c1, r1), b = pt(c2, r2);
+  const mx = (a.x + b.x) / 2;
+  return `<path d="M${a.x+R} ${a.y} C${mx} ${a.y} ${mx} ${b.y} ${b.x-R} ${b.y}" fill="none" stroke="${color}" stroke-width="2" marker-end="url(#arr)"/>`;
+}
+
+function label(col, row, text, color, dy=-22, dx=0) {
+  const {x,y} = pt(col, row);
+  const lx = x + dx, ly = y + dy;
+  const w = text.length * 6.5 + 12;
+  return `<rect x="${lx-w/2}" y="${ly-9}" width="${w}" height="18" rx="9" fill="${color}" opacity="0.9"/>
+  <text x="${lx}" y="${ly+4}" text-anchor="middle" fill="white" font-size="9" font-weight="700">${text}</text>`;
+}
+
+function head(col, row, dy=-22, dx=0) {
+  const {x,y} = pt(col, row);
+  const lx = x + dx, ly = y + dy;
+  return `<rect x="${lx-18}" y="${ly-9}" width="36" height="18" rx="3" fill="#f05033" opacity="0.9"/>
+  <text x="${lx}" y="${ly+4}" text-anchor="middle" fill="white" font-size="9" font-weight="700">HEAD</text>`;
+}
+
+function arrow(x1,y1,x2,y2,color='#555') {
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2.5" stroke-dasharray="4,2" marker-end="url(#arr)"/>`;
+}
+
+function divider(x, h) {
+  return `<line x1="${x}" y1="8" x2="${x}" y2="${h-8}" stroke="#30363d" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="${x+6}" y="16" fill="#555" font-size="9">after</text>`;
+}
+
+function sLabel(x, y, text, color='#8b949e') {
+  return `<text x="${x}" y="${y}" fill="${color}" font-size="9" font-weight="600">${text}</text>`;
+}
+
+function box(x,y,w,h,color,text) {
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${color}" opacity="0.15" stroke="${color}" stroke-width="1" stroke-opacity="0.4"/>
+  <text x="${x+w/2}" y="${y+h/2+4}" text-anchor="middle" fill="${color}" font-size="10" font-weight="600">${text}</text>`;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  COMMAND DATA
+// ─────────────────────────────────────────────────────────────
+const SECTIONS = [
+{
+  id:'setup', title:'Setup & Config', color:'#f05033', bg:'bg-orange', icon:'⚙️',
+  commands:[
+  {
+    name:'git config',
+    tag:'CONFIG', tagColor:'color-orange',
+    desc:'Set user-level or repo-level configuration values. Use --global for user-wide settings stored in ~/.gitconfig.',
+    examples:[
+      { code:'git config --global user.name "Ada Lovelace"', note:'Set your name globally' },
+      { code:'git config --global user.email "ada@example.com"', note:'Set your email globally' },
+      { code:'git config --list --show-origin', note:'List all settings and where they come from' },
+    ],
+    diagram: () => {
+      const w=320, h=90;
+      return svgWrap(w,h,`
+        ${box(10,10,140,68,'#f05033','~/.gitconfig')}
+        ${sLabel(20,32,'user.name = "Ada"','#e6edf3')}
+        ${sLabel(20,46,'user.email = "ada@…"','#e6edf3')}
+        ${sLabel(20,60,'core.editor = vim','#e6edf3')}
+        ${box(170,10,140,68,'#58a6ff','.git/config (local)')}
+        ${sLabel(180,32,'user.email = "work@…"','#e6edf3')}
+        ${sLabel(180,46,'core.autocrlf = false','#e6edf3')}
+        ${sLabel(178,62,'← overrides global','#8b949e')}
+      `);
+    }
+  },
+  {
+    name:'git help',
+    tag:'CONFIG', tagColor:'color-orange',
+    desc:'Open the manual page for any git command, or get a quick synopsis with -h.',
+    examples:[
+      { code:'git help commit', note:'Open full man page for commit' },
+      { code:'git commit -h', note:'Quick one-screen synopsis' },
+      { code:'git help -a', note:'List all available sub-commands' },
+    ],
+    diagram: () => {
+      const w=280, h=80;
+      return svgWrap(w,h,`
+        ${box(10,8,100,60,'#f05033','git help X')}
+        ${arrow(112,38,168,38,'#555')}
+        ${box(170,8,100,60,'#58a6ff','man git-X')}
+        ${sLabel(14,70,'git commit -h → short usage','#8b949e')}
+      `);
+    }
+  }
+  ]
+},
+
+{
+  id:'repo', title:'Creating Repositories', color:'#58a6ff', bg:'bg-blue', icon:'📁',
+  commands:[
+  {
+    name:'git init',
+    tag:'REPO', tagColor:'color-blue',
+    desc:'Create an empty Git repository in the current directory (or a given path). Creates a .git/ folder with all internal objects.',
+    examples:[
+      { code:'git init', note:'Initialise repo in current folder' },
+      { code:'git init my-project', note:'Initialise in a new folder' },
+      { code:'git init --bare repo.git', note:'Bare repo (no working tree, for servers)' },
+    ],
+    diagram: () => {
+      const w=320, h=96;
+      return svgWrap(w,h,`
+        ${sLabel(10,14,'Before','#8b949e')}
+        ${box(10,20,100,64,'#555','my-project/')}
+        ${sLabel(24,46,'app.js','#e6edf3')}
+        ${sLabel(24,60,'README','#e6edf3')}
+        ${divider(130,96)}
+        ${sLabel(144,14,'After','#8b949e')}
+        ${box(140,20,160,64,'#58a6ff','my-project/')}
+        ${sLabel(154,38,'.git/  ← new','#58a6ff')}
+        ${sLabel(154,52,'app.js','#e6edf3')}
+        ${sLabel(154,66,'README','#e6edf3')}
+      `);
+    }
+  },
+  {
+    name:'git clone',
+    tag:'REPO', tagColor:'color-blue',
+    desc:'Copy a remote repository to your machine. Clones history, branches, and tags. Sets up "origin" remote automatically.',
+    examples:[
+      { code:'git clone https://github.com/org/repo.git', note:'Clone into ./repo' },
+      { code:'git clone git@github.com:org/repo.git my-dir', note:'Clone into custom folder' },
+      { code:'git clone --depth 1 https://github.com/org/repo.git', note:'Shallow clone (latest commit only)' },
+    ],
+    diagram: () => {
+      const w=320, h=90;
+      return svgWrap(w,h,`
+        ${box(10,12,110,66,'#8b949e','github.com/org/repo')}
+        ${sLabel(24,34,'main','#e6edf3')}
+        ${sLabel(24,48,'feature/login','#e6edf3')}
+        ${sLabel(24,62,'tags: v1.0','#e6edf3')}
+        ${arrow(124,44,182,44,'#58a6ff')}
+        ${sLabel(134,40,'clone','#58a6ff')}
+        ${box(186,12,120,66,'#58a6ff','~/repo (local)')}
+        ${sLabel(200,34,'main ✓','#e6edf3')}
+        ${sLabel(200,48,'origin/main ✓','#e6edf3')}
+        ${sLabel(200,62,'origin → remote','#8b949e')}
+      `);
+    }
+  }
+  ]
+},
+
+{
+  id:'staging', title:'Staging Area', color:'#e3b341', bg:'bg-yellow', icon:'📋',
+  commands:[
+  {
+    name:'git status',
+    tag:'STAGING', tagColor:'color-yellow',
+    desc:'Show which files are tracked, modified, staged, or untracked. Your constant companion for understanding the working tree.',
+    examples:[
+      { code:'git status', note:'Full output' },
+      { code:'git status -s', note:'Short/porcelain format: M=modified, ??=untracked' },
+      { code:'git status -sb', note:'Short format + branch info' },
+    ],
+    diagram: () => {
+      const w=320, h=100;
+      return svgWrap(w,h,`
+        ${box(8,8,90,82,'#555','Working Tree')}
+        ${sLabel(14,28,'auth.js','#e6edf3')}
+        ${sLabel(14,42,'  modified','#e3b341')}
+        ${sLabel(14,56,'db.js','#e6edf3')}
+        ${sLabel(14,70,'  untracked','#8b949e')}
+        ${box(108,8,90,82,'#e3b341','Staging Area')}
+        ${sLabel(114,28,'login.js','#e6edf3')}
+        ${sLabel(114,42,'  staged','#3fb950')}
+        ${box(210,8,100,82,'#58a6ff','History')}
+        ${sLabel(218,28,'a1b2 main','#e6edf3')}
+        ${sLabel(218,42,'committed','#8b949e')}
+        ${sLabel(10,98,'git status shows all three zones','#555')}
+      `);
+    }
+  },
+  {
+    name:'git add',
+    tag:'STAGING', tagColor:'color-yellow',
+    desc:'Stage changes from the working tree into the index (staging area). The staged snapshot is what gets committed.',
+    examples:[
+      { code:'git add index.html', note:'Stage a specific file' },
+      { code:'git add src/', note:'Stage everything under src/' },
+      { code:'git add -p', note:'Interactively pick hunks to stage' },
+      { code:'git add -A', note:'Stage all changes (new, modified, deleted)' },
+    ],
+    diagram: () => {
+      const w=320, h=90;
+      return svgWrap(w,h,`
+        ${box(8,10,110,68,'#555','Working Tree')}
+        ${sLabel(18,30,'login.js  ●','#e3b341')}
+        ${sLabel(18,44,'auth.js   ●','#e3b341')}
+        ${sLabel(18,58,'(modified)','#8b949e')}
+        ${arrow(122,44,174,44,'#e3b341')}
+        ${sLabel(126,40,'git add','#e3b341')}
+        ${box(178,10,130,68,'#e3b341','Staging Area')}
+        ${sLabel(188,30,'login.js  ★','#3fb950')}
+        ${sLabel(188,44,'auth.js   ★','#3fb950')}
+        ${sLabel(188,58,'ready to commit','#8b949e')}
+      `);
+    }
+  },
+  {
+    name:'git diff',
+    tag:'STAGING', tagColor:'color-yellow',
+    desc:'Show line-by-line differences. Without args: working tree vs. index. With --staged: index vs. last commit.',
+    examples:[
+      { code:'git diff', note:'Working tree vs. staging (unstaged changes)' },
+      { code:'git diff --staged', note:'Staged changes vs. last commit' },
+      { code:'git diff main..feature/login', note:'Diff between two branches' },
+      { code:'git diff HEAD~2 HEAD -- auth.js', note:'Diff a file across 2 commits' },
+    ],
+    diagram: () => {
+      const w=320, h=90;
+      return svgWrap(w,h,`
+        ${box(8,10,88,68,'#58a6ff','HEAD commit')}
+        ${sLabel(18,46,'const x = 1','#8b949e')}
+        ${box(104,10,90,30,'#e3b341','Staged index')}
+        ${sLabel(114,30,'const x = 2','#e6edf3')}
+        ${box(104,48,90,30,'#555','Working tree')}
+        ${sLabel(114,68,'const x = 3','#e6edf3')}
+        ${sLabel(198,24,'←git diff --staged','#e3b341')}
+        ${sLabel(198,63,'←git diff (unstaged)','#8b949e')}
+        ${arrow(96,26,102,26,'#e3b341')}
+        ${arrow(96,64,102,64,'#555')}
+      `);
+    }
+  },
+  {
+    name:'git rm / git mv',
+    tag:'STAGING', tagColor:'color-yellow',
+    desc:'Remove or rename tracked files and stage the result in one step, instead of doing it manually and re-adding.',
+    examples:[
+      { code:'git rm legacy.js', note:'Delete file and stage the removal' },
+      { code:'git rm --cached config.env', note:'Un-track file but keep it on disk' },
+      { code:'git mv old-name.js new-name.js', note:'Rename and stage — preserves history' },
+    ],
+    diagram: () => {
+      const w=320, h=84;
+      return svgWrap(w,h,`
+        ${box(8,8,130,68,'#555','Before')}
+        ${sLabel(18,28,'utils.js','#e6edf3')}
+        ${sLabel(18,42,'helpers.js','#e6edf3')}
+        ${arrow(142,42,180,42,'#e3b341')}
+        ${sLabel(142,38,'git mv','#e3b341')}
+        ${box(186,8,122,68,'#e3b341','Staged')}
+        ${sLabel(196,28,'utils.js','#8b949e')}
+        ${sLabel(196,42,'helpers.js → util-helpers.js','#3fb950')}
+        ${sLabel(196,62,'staged ★','#8b949e')}
+      `);
+    }
+  }
+  ]
+},
+
+{
+  id:'commit', title:'Committing', color:'#3fb950', bg:'bg-green', icon:'💾',
+  commands:[
+  {
+    name:'git commit',
+    tag:'COMMIT', tagColor:'color-green',
+    desc:'Record the staged snapshot permanently in history. Each commit gets a unique SHA-1 hash and points to its parent.',
+    examples:[
+      { code:'git commit -m "feat: add login form"', note:'Commit with inline message' },
+      { code:'git commit', note:'Open editor for multi-line message' },
+      { code:'git commit -am "fix: typo in auth"', note:'Stage all tracked + commit in one step' },
+    ],
+    diagram: () => {
+      const w=340, h=96;
+      return svgWrap(w,h,`
+        ${sLabel(8,14,'Before','#8b949e')}
+        ${commit(0,0,'a1b2','#444c56')}${commit(1,0,'c3d4','#444c56')}
+        ${edge(0,0,1,0)}
+        ${label(1,0,'main','#3fb950')}${head(1,0,22,24)}
+        ${sLabel(10,58,'login.js staged','#e3b341')}
+        ${divider(164,96)}
+        ${sLabel(178,14,'After','#8b949e')}
+        ${commit(2,0,'a1b2','#444c56',pt(2,0).x-52+164,undefined)}
+        ${commit(3,0,'c3d4','#444c56',pt(3,0).x-52+164,undefined)}
+        ${commit(4,0,'e5f6','#3fb950',pt(4,0).x-52+164,undefined)}
+        ${svgWrap(0,0,'').slice(0,-6)}
+        <circle cx="${164+24+UNIT*2}" cy="26" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
+        <text x="${164+24+UNIT*2}" y="30" text-anchor="middle" fill="#e6edf3" font-size="8" font-weight="600">a1b2</text>
+        <circle cx="${164+24+UNIT*3}" cy="26" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
+        <text x="${164+24+UNIT*3}" y="30" text-anchor="middle" fill="#e6edf3" font-size="8" font-weight="600">c3d4</text>
+        <circle cx="${164+24+UNIT*4}" cy="26" r="${R}" fill="#3fb950" stroke="#6e7681" stroke-width="1.5"/>
+        <text x="${164+24+UNIT*4}" y="30" text-anchor="middle" fill="#e6edf3" font-size="8" font-weight="600">e5f6</text>
+        <line x1="${164+24+UNIT*0+R+1}" y1="26" x2="${164+24+UNIT*1-R-3}" y2="26" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="${164+24+UNIT*1+R+1}" y1="26" x2="${164+24+UNIT*2-R-3}" y2="26" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="${164+24+UNIT*2+R+1}" y1="26" x2="${164+24+UNIT*3-R-3}" y2="26" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="${164+24+UNIT*3+R+1}" y1="26" x2="${164+24+UNIT*4-R-3}" y2="26" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
+        ${sLabel(164+24+UNIT*4-14,62,'feat: login','#8b949e')}
+        ${sLabel(164+24+UNIT*3-18,62,'main → new','#3fb950')}
+      `);
+    }
+  },
+  {
+    name:'git commit --amend',
+    tag:'COMMIT', tagColor:'color-green',
+    desc:'Replace the most recent commit with a new one. Use to fix the message, add forgotten files, or tweak changes. Never amend pushed commits.',
+    examples:[
+      { code:'git add forgotten.js && git commit --amend --no-edit', note:'Add file to last commit silently' },
+      { code:'git commit --amend -m "fix: corrected message"', note:'Change last commit message' },
+      { code:'git commit --amend --reset-author', note:'Fix author info on last commit' },
+    ],
+    diagram: () => {
+      const w=330, h=96;
+      const d = 160;
+      return svgWrap(w,h,`
+        ${sLabel(8,14,'Before','#8b949e')}
+        ${commit(0,0,'a1b2','#444c56')}${commit(1,0,'c3d4','#444c56')}${commit(2,0,'e5f6','#f85149')}
+        ${edge(0,0,1,0)}${edge(1,0,2,0)}
+        ${label(2,0,'main','#3fb950')}${head(2,0,22,24)}
+        ${sLabel(10,70,'e5f6 has wrong msg','#f85149')}
+        ${divider(d,96)}
+        ${sLabel(d+12,14,'After','#8b949e')}
+        <circle cx="${d+24}" cy="26" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
+        <text x="${d+24}" y="30" text-anchor="middle" fill="#e6edf3" font-size="8">a1b2</text>
+        <circle cx="${d+24+UNIT}" cy="26" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
+        <text x="${d+24+UNIT}" y="30" text-anchor="middle" fill="#e6edf3" font-size="8">c3d4</text>
+        <circle cx="${d+24+UNIT*2}" cy="26" r="${R}" fill="#3fb950" stroke="#3fb950" stroke-width="2"/>
+        <text x="${d+24+UNIT*2}" y="30" text-anchor="middle" fill="#fff" font-size="8">f7a8</text>
+        <line x1="${d+24+R+1}" y1="26" x2="${d+24+UNIT-R-3}" y2="26" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="${d+24+UNIT+R+1}" y1="26" x2="${d+24+UNIT*2-R-3}" y2="26" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
+        ${sLabel(d+24+UNIT*2-22,62,'new hash','#3fb950')}
+        ${sLabel(d+24+UNIT*2-28,74,'(replaces e5f6)','#8b949e')}
+      `);
+    }
+  }
+  ]
+},
+
+{
+  id:'branch', title:'Branching', color:'#bc8cff', bg:'bg-purple', icon:'🌿',
+  commands:[
+  {
+    name:'git branch',
+    tag:'BRANCH', tagColor:'color-purple',
+    desc:'List, create, rename, or delete branches. A branch is just a lightweight pointer to a commit.',
+    examples:[
+      { code:'git branch', note:'List local branches (* = current)' },
+      { code:'git branch feature/login', note:'Create a new branch at HEAD' },
+      { code:'git branch -d feature/login', note:'Delete a merged branch' },
+      { code:'git branch -D feature/login', note:'Force-delete even if unmerged' },
+      { code:'git branch -m old-name new-name', note:'Rename current branch' },
+    ],
+    diagram: () => {
+      const w=320, h=106;
+      return svgWrap(w,h,`
+        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#444c56')}
+        ${edge(0,1,1,1)}${edge(1,1,2,1)}
+        ${label(2,1,'main','#3fb950', -22)}${head(2,1,22,24)}
+        ${sLabel(8,94,'git branch feature/login  →  creates pointer at e5f6','#8b949e')}
+        ${commit(0,0,'a1b2','#444c56',undefined,undefined)}
+        ${sLabel(24,4,'','',0,0)}
+        <circle cx="${24+UNIT*2}" cy="${26+UNIT}" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
+        <text x="${24+UNIT*2}" y="${30+UNIT}" text-anchor="middle" fill="#e6edf3" font-size="8">e5f6</text>
+        ${label(2,1,'feature/login','#bc8cff',-22,0)}
+      `);
+    }
+  },
+  {
+    name:'git switch',
+    tag:'BRANCH', tagColor:'color-purple',
+    desc:'Move HEAD to another branch (modern replacement for git checkout). Use -c to create and switch in one step.',
+    examples:[
+      { code:'git switch main', note:'Switch to main branch' },
+      { code:'git switch -c feature/signup', note:'Create new branch and switch to it' },
+      { code:'git switch -', note:'Switch back to previous branch' },
+      { code:'git checkout feature/login', note:'Legacy equivalent (still works)' },
+    ],
+    diagram: () => {
+      const w=320, h=110;
+      return svgWrap(w,h,`
+        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#444c56')}
+        ${edge(0,1,1,1)}${edge(1,1,2,1)}
+        ${commit(2,0,'g7h8','#bc8cff')}
+        ${edge(1,1,2,0)}
+        ${label(2,1,'main','#3fb950',-22)}
+        ${label(2,0,'feature/login','#bc8cff',-22)}
+        ${head(2,1,22,24)}
+        ${sLabel(8,102,'git switch feature/login  →  HEAD moves up','#8b949e')}
+        ${head(2,0,-22,24)}
+      `);
+    }
+  },
+  {
+    name:'git stash',
+    tag:'BRANCH', tagColor:'color-purple',
+    desc:'Temporarily shelve (stash) uncommitted changes so you can switch context, then re-apply them later.',
+    examples:[
+      { code:'git stash', note:'Stash working tree + index' },
+      { code:'git stash push -m "wip: login form"', note:'Stash with a descriptive name' },
+      { code:'git stash list', note:'Show all stashes' },
+      { code:'git stash pop', note:'Re-apply latest stash and drop it' },
+      { code:'git stash apply stash@{2}', note:'Re-apply a specific stash, keep it' },
+    ],
+    diagram: () => {
+      const w=330, h=96;
+      return svgWrap(w,h,`
+        ${box(8,8,130,78,'#555','Working Tree (dirty)')}
+        ${sLabel(18,30,'login.js ●','#e3b341')}
+        ${sLabel(18,44,'auth.js  ●','#e3b341')}
+        ${sLabel(18,58,'unsaved WIP…','#8b949e')}
+        ${arrow(142,50,175,50,'#bc8cff')}
+        ${sLabel(144,46,'stash','#bc8cff')}
+        ${box(180,8,138,78,'#bc8cff','Stash stack')}
+        ${sLabel(190,28,'stash@{0} wip:login','#e6edf3')}
+        ${sLabel(190,42,'stash@{1} old work','#e6edf3')}
+        ${sLabel(190,64,'pop → restore + drop','#8b949e')}
+      `);
+    }
+  }
+  ]
+},
+
+{
+  id:'merge', title:'Merging & Rebasing', color:'#39c5cf', bg:'bg-cyan', icon:'🔀',
+  commands:[
+  {
+    name:'git merge',
+    tag:'MERGE', tagColor:'color-cyan',
+    desc:'Join two branches. Fast-forward (no divergence) moves the pointer; three-way creates a merge commit. Use --no-ff to always create a merge commit.',
+    examples:[
+      { code:'git switch main && git merge feature/login', note:'Merge feature into main' },
+      { code:'git merge --no-ff feature/login -m "Merge feature/login"', note:'Always create merge commit' },
+      { code:'git merge --squash feature/login', note:'Squash all commits into one staged diff' },
+      { code:'git merge --abort', note:'Abort an in-progress conflicted merge' },
+    ],
+    diagram: () => {
+      const w=340, h=116;
+      return svgWrap(w,h,`
+        ${sLabel(8,10,'Fast-forward','#8b949e')}
+        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}
+        ${commit(2,0,'e5f6','#39c5cf')}${commit(3,0,'g7h8','#39c5cf')}
+        ${edge(0,1,1,1)}${edge(1,1,2,0)}${edge(2,0,3,0)}
+        ${label(1,1,'main','#3fb950',-22)}
+        ${label(3,0,'feature/login','#39c5cf',-22)}
+        ${sLabel(8,96,'After: main','#3fb950')}${sLabel(50,96,'→ g7h8 (pointer moved)','#8b949e')}
+        ${divider(178,116)}
+        ${sLabel(190,10,'3-way merge','#8b949e')}
+        ${commit(3,2,'a1b2','#444c56',190+24,undefined)}
+        ${commit(4,2,'c3d4','#444c56',190+24,undefined)}
+        ${commit(4,1,'e5f6','#39c5cf',190+24,undefined)}
+        ${commit(5,1,'M','#3fb950',190+24,undefined)}
+        <circle cx="${190+24}" cy="${26+UNIT*2}" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
+        <text x="${190+24}" y="${30+UNIT*2}" text-anchor="middle" fill="#e6edf3" font-size="8">a1b2</text>
+        <circle cx="${190+24+UNIT}" cy="${26+UNIT*2}" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
+        <text x="${190+24+UNIT}" y="${30+UNIT*2}" text-anchor="middle" fill="#e6edf3" font-size="8">c3d4</text>
+        <circle cx="${190+24+UNIT}" cy="${26+UNIT}" r="${R}" fill="#39c5cf" stroke="#6e7681" stroke-width="1.5"/>
+        <text x="${190+24+UNIT}" y="${30+UNIT}" text-anchor="middle" fill="#e6edf3" font-size="8">e5f6</text>
+        <circle cx="${190+24+UNIT*2}" cy="${26+UNIT}" r="${R}" fill="#3fb950" stroke="#3fb950" stroke-width="2"/>
+        <text x="${190+24+UNIT*2}" y="${30+UNIT}" text-anchor="middle" fill="#fff" font-size="8">M</text>
+        <line x1="${190+24+R+1}" y1="${26+UNIT*2}" x2="${190+24+UNIT-R-3}" y2="${26+UNIT*2}" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="${190+24+UNIT+R+1}" y1="${26+UNIT*2}" x2="${190+24+UNIT*2-R-3}" y2="${26+UNIT}" stroke="#3fb950" stroke-width="2" marker-end="url(#arr-g)"/>
+        <line x1="${190+24+UNIT+R+1}" y1="${26+UNIT}" x2="${190+24+UNIT*2-R-3}" y2="${26+UNIT}" stroke="#39c5cf" stroke-width="2" marker-end="url(#arr-g)"/>
+        ${sLabel(190+24+UNIT*2-6,112,'M','#3fb950')}
+      `);
+    }
+  },
+  {
+    name:'git rebase',
+    tag:'MERGE', tagColor:'color-cyan',
+    desc:'Re-apply commits from one branch on top of another, producing a linear history. Interactive rebase (-i) lets you squash, reorder, or edit commits.',
+    examples:[
+      { code:'git switch feature/login && git rebase main', note:'Replay feature commits onto main tip' },
+      { code:'git rebase -i HEAD~3', note:'Interactive: edit last 3 commits' },
+      { code:'git rebase --continue', note:'Continue after resolving a conflict' },
+      { code:'git rebase --abort', note:'Abandon rebase and restore original state' },
+    ],
+    diagram: () => {
+      const w=340, h=116;
+      const d=170;
+      return svgWrap(w,h,`
+        ${sLabel(8,10,'Before','#8b949e')}
+        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#444c56')}
+        ${commit(1,0,'f1f2','#39c5cf')}${commit(2,0,'g3g4','#39c5cf')}
+        ${edge(0,1,1,1)}${edge(1,1,2,1)}${edge(1,1,1,0)}${edge(1,0,2,0)}
+        ${label(2,1,'main','#3fb950',-22)}
+        ${label(2,0,'feature/login','#39c5cf',-22)}
+        ${divider(d,116)}
+        ${sLabel(d+10,10,'After rebase','#8b949e')}
+        <circle cx="${d+24}" cy="${26+UNIT}" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
+        <text x="${d+24}" y="${30+UNIT}" text-anchor="middle" fill="#e6edf3" font-size="8">a1b2</text>
+        <circle cx="${d+24+UNIT}" cy="${26+UNIT}" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
+        <text x="${d+24+UNIT}" y="${30+UNIT}" text-anchor="middle" fill="#e6edf3" font-size="8">c3d4</text>
+        <circle cx="${d+24+UNIT*2}" cy="${26+UNIT}" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
+        <text x="${d+24+UNIT*2}" y="${30+UNIT}" text-anchor="middle" fill="#e6edf3" font-size="8">e5f6</text>
+        <circle cx="${d+24+UNIT*3}" cy="${26+UNIT}" r="${R}" fill="#39c5cf" stroke="#39c5cf" stroke-width="2"/>
+        <text x="${d+24+UNIT*3}" y="${30+UNIT}" text-anchor="middle" fill="#fff" font-size="8">f1'</text>
+        <circle cx="${d+24+UNIT*4}" cy="${26+UNIT}" r="${R}" fill="#39c5cf" stroke="#39c5cf" stroke-width="2"/>
+        <text x="${d+24+UNIT*4}" y="${30+UNIT}" text-anchor="middle" fill="#fff" font-size="8">g3'</text>
+        <line x1="${d+24+R+1}" y1="${26+UNIT}" x2="${d+24+UNIT-R-3}" y2="${26+UNIT}" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="${d+24+UNIT+R+1}" y1="${26+UNIT}" x2="${d+24+UNIT*2-R-3}" y2="${26+UNIT}" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="${d+24+UNIT*2+R+1}" y1="${26+UNIT}" x2="${d+24+UNIT*3-R-3}" y2="${26+UNIT}" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="${d+24+UNIT*3+R+1}" y1="${26+UNIT}" x2="${d+24+UNIT*4-R-3}" y2="${26+UNIT}" stroke="#39c5cf" stroke-width="2" marker-end="url(#arr-b)"/>
+        ${sLabel(d+24+UNIT*2-6,10,'main','#3fb950')}
+        ${sLabel(d+24+UNIT*4-12,10,'feature','#39c5cf')}
+        <line x1="${d+24+UNIT*2}" y1="18" x2="${d+24+UNIT*2}" y2="${26+UNIT-R-2}" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="3,2"/>
+        <line x1="${d+24+UNIT*4}" y1="18" x2="${d+24+UNIT*4}" y2="${26+UNIT-R-2}" stroke="#39c5cf" stroke-width="1.5" stroke-dasharray="3,2"/>
+        ${sLabel(d+10,108,'new hashes — linear history','#8b949e')}
+      `);
+    }
+  },
+  {
+    name:'git cherry-pick',
+    tag:'MERGE', tagColor:'color-cyan',
+    desc:'Copy a specific commit (or range) onto the current branch by re-applying its diff as a new commit.',
+    examples:[
+      { code:'git cherry-pick a1b2c3d', note:'Apply one commit to current branch' },
+      { code:'git cherry-pick a1b2c3d..e5f6g7h', note:'Apply a range of commits' },
+      { code:'git cherry-pick -n a1b2c3d', note:'Apply changes but do not commit yet' },
+      { code:'git cherry-pick --abort', note:'Cancel if conflicts occur' },
+    ],
+    diagram: () => {
+      const w=340, h=116;
+      return svgWrap(w,h,`
+        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#444c56')}
+        ${commit(1,0,'★','#39c5cf')}${commit(2,0,'f7g8','#444c56')}
+        ${edge(0,1,1,1)}${edge(1,1,2,1)}${edge(1,1,1,0)}${edge(1,0,2,0)}
+        ${label(2,1,'main','#3fb950',-22)}${head(2,1,22,24)}
+        ${label(2,0,'feature/login','#39c5cf',-22)}
+        ${sLabel(24+UNIT,-6,'← pick this','#39c5cf')}
+        ${sLabel(8,104,'After: cherry-pick ★ → new commit on main','#8b949e')}
+        ${commit(3,1,'★\'','#39c5cf')}
+        ${edge(2,1,3,1)}
+        ${label(3,1,'main','#3fb950',-22)}${head(3,1,22,24)}
+        ${sLabel(24+UNIT*3,56,'copy','#39c5cf')}
+        <path d="M${24+UNIT+13} ${26} C${24+UNIT+40} ${26+UNIT*0.2} ${24+UNIT*3-40} ${26} ${24+UNIT*3-13} ${26}" fill="none" stroke="#39c5cf" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr-b)"/>
+      `);
+    }
+  }
+  ]
+},
+
+{
+  id:'remote', title:'Remote Repositories', color:'#58a6ff', bg:'bg-blue', icon:'☁️',
+  commands:[
+  {
+    name:'git remote',
+    tag:'REMOTE', tagColor:'color-blue',
+    desc:'Manage the set of remote repositories whose branches you track. "origin" is the conventional name for your primary remote.',
+    examples:[
+      { code:'git remote -v', note:'List remotes with their URLs' },
+      { code:'git remote add origin git@github.com:org/repo.git', note:'Add a remote named "origin"' },
+      { code:'git remote rename origin upstream', note:'Rename a remote' },
+      { code:'git remote remove upstream', note:'Remove a remote' },
+    ],
+    diagram: () => {
+      const w=320, h=86;
+      return svgWrap(w,h,`
+        ${box(8,10,130,66,'#444c56','Local repo')}
+        ${sLabel(18,32,'remote: origin','#58a6ff')}
+        ${sLabel(18,46,'  → github.com/org/repo','#8b949e')}
+        ${sLabel(18,60,'remote: upstream','#bc8cff')}
+        ${arrow(142,42,178,42,'#555')}
+        ${box(182,10,128,66,'#58a6ff','GitHub')}
+        ${sLabel(192,32,'org/repo (origin)','#e6edf3')}
+        ${sLabel(192,48,'forked-org/repo','#e6edf3')}
+      `);
+    }
+  },
+  {
+    name:'git fetch',
+    tag:'REMOTE', tagColor:'color-blue',
+    desc:'Download remote commits, branches, and tags without merging them. Updates remote-tracking refs (e.g. origin/main) but leaves your local branches untouched.',
+    examples:[
+      { code:'git fetch origin', note:'Fetch all branches from origin' },
+      { code:'git fetch origin main', note:'Fetch only the main branch' },
+      { code:'git fetch --all', note:'Fetch from every configured remote' },
+      { code:'git fetch --prune', note:'Delete stale remote-tracking refs' },
+    ],
+    diagram: () => {
+      const w=340, h=100;
+      return svgWrap(w,h,`
+        ${box(8,8,100,82,'#58a6ff','origin')}
+        ${sLabel(18,28,'a1b2','#e6edf3')}${sLabel(18,40,'c3d4','#e6edf3')}${sLabel(18,52,'e5f6','#e6edf3')}${sLabel(18,64,'NEW','#3fb950')}
+        ${arrow(112,48,165,48,'#58a6ff')}
+        ${sLabel(120,44,'fetch','#58a6ff')}
+        ${box(170,8,160,82,'#444c56','Local')}
+        ${sLabel(180,28,'main (unchanged)','#8b949e')}
+        ${sLabel(180,44,'origin/main ← new','#58a6ff')}
+        ${sLabel(180,60,'a1b2→c3d4→e5f6→NEW','#8b949e')}
+        ${sLabel(180,76,'you review before merge','#555')}
+      `);
+    }
+  },
+  {
+    name:'git pull',
+    tag:'REMOTE', tagColor:'color-blue',
+    desc:'Fetch from the remote and immediately merge (or rebase with --rebase) into the current branch. Shorthand for git fetch + git merge.',
+    examples:[
+      { code:'git pull origin main', note:'Fetch + merge main from origin' },
+      { code:'git pull --rebase origin main', note:'Fetch + rebase instead of merge' },
+      { code:'git pull --ff-only', note:'Only allow fast-forward (safe, no merge commits)' },
+    ],
+    diagram: () => {
+      const w=340, h=100;
+      return svgWrap(w,h,`
+        ${box(8,8,100,82,'#58a6ff','origin/main')}
+        ${sLabel(18,46,'e5f6 (new)','#e6edf3')}
+        ${arrow(112,48,155,30,'#58a6ff')}
+        ${arrow(112,48,155,68,'#58a6ff')}
+        ${sLabel(120,30,'fetch','#58a6ff')}
+        ${sLabel(120,64,'merge','#3fb950')}
+        ${box(160,8,80,40,'#444c56','origin/main')}
+        ${sLabel(170,32,'updated','#8b949e')}
+        ${box(160,54,80,40,'#3fb950','local main')}
+        ${sLabel(168,78,'merged','#e6edf3')}
+        ${sLabel(8,96,'pull = fetch + merge (or rebase)','#555')}
+      `);
+    }
+  },
+  {
+    name:'git push',
+    tag:'REMOTE', tagColor:'color-blue',
+    desc:'Upload local commits to a remote repository. Use -u to set the upstream tracking reference so future pushes need no arguments.',
+    examples:[
+      { code:'git push origin main', note:'Push local main to origin' },
+      { code:'git push -u origin feature/login', note:'Push and set upstream tracking' },
+      { code:'git push --force-with-lease', note:'Safe force push (fails if remote changed)' },
+      { code:'git push origin --delete feature/login', note:'Delete a remote branch' },
+      { code:'git push --tags', note:'Push all local tags to remote' },
+    ],
+    diagram: () => {
+      const w=340, h=100;
+      return svgWrap(w,h,`
+        ${box(8,12,140,76,'#444c56','Local')}
+        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'e5f6','#3fb950')}
+        ${edge(0,1,1,1)}
+        ${label(1,1,'main','#3fb950',-22)}${head(1,1,22,24)}
+        ${arrow(154,52,195,52,'#58a6ff')}
+        ${sLabel(158,48,'push','#58a6ff')}
+        ${box(200,12,130,76,'#58a6ff','origin')}
+        ${sLabel(210,38,'a1b2 → e5f6','#e6edf3')}
+        ${sLabel(210,56,'main updated','#e6edf3')}
+        ${sLabel(210,70,'origin/main ✓','#8b949e')}
+      `);
+    }
+  }
+  ]
+},
+
+{
+  id:'undo', title:'Undoing Changes', color:'#f85149', bg:'bg-red', icon:'↩️',
+  commands:[
+  {
+    name:'git restore',
+    tag:'UNDO', tagColor:'color-red',
+    desc:'Restore working tree files from the index or a commit. The safe way to discard local changes without touching history.',
+    examples:[
+      { code:'git restore auth.js', note:'Discard unstaged changes in auth.js' },
+      { code:'git restore --staged auth.js', note:'Un-stage auth.js (keep working tree)' },
+      { code:'git restore --source HEAD~2 auth.js', note:'Restore auth.js from 2 commits ago' },
+    ],
+    diagram: () => {
+      const w=320, h=94;
+      return svgWrap(w,h,`
+        ${box(8,8,88,78,'#58a6ff','HEAD commit')}
+        ${sLabel(18,42,'auth.js v1','#e6edf3')}
+        ${box(104,8,90,36,'#e3b341','Staged')}
+        ${sLabel(114,30,'auth.js v2','#e6edf3')}
+        ${box(104,52,90,34,'#f85149','Working tree')}
+        ${sLabel(114,72,'auth.js v3','#e6edf3')}
+        ${sLabel(200,18,'←restore --staged','#e3b341')}
+        ${sLabel(200,62,'←restore','#f85149')}
+        ${arrow(200,26,104+90,26,'#e3b341')}
+        ${arrow(200,70,104+90,70,'#f85149')}
+      `);
+    }
+  },
+  {
+    name:'git reset',
+    tag:'UNDO', tagColor:'color-red',
+    desc:'Move HEAD (and the branch pointer) to a specified commit. Three modes control what happens to the index and working tree.',
+    examples:[
+      { code:'git reset --soft HEAD~1', note:'Undo last commit — keep changes staged' },
+      { code:'git reset --mixed HEAD~1', note:'Undo last commit — keep changes unstaged (default)' },
+      { code:'git reset --hard HEAD~1', note:'Undo last commit — DISCARD all changes' },
+      { code:'git reset HEAD auth.js', note:'Un-stage a specific file' },
+    ],
+    diagram: () => {
+      const w=340, h=116;
+      return svgWrap(w,h,`
+        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#f85149')}
+        ${edge(0,1,1,1)}${edge(1,1,2,1)}
+        ${label(2,1,'main','#3fb950',-22)}${head(2,1,22,24)}
+        ${sLabel(8,100,'git reset HEAD~1  →  HEAD+main move to c3d4','#8b949e')}
+        ${commit(0,0,'a1b2','#444c56')}${commit(1,0,'c3d4','#3fb950')}
+        ${edge(0,0,1,0)}
+        ${label(1,0,'main','#3fb950',-22)}${head(1,0,22,24)}
+        ${sLabel(24+UNIT*2,58,'e5f6 still','#8b949e')}
+        ${sLabel(24+UNIT*2,70,'exists (for now)','#555')}
+        ${sLabel(8,82,'--soft: staged  |  --mixed: unstaged  |  --hard: gone','#8b949e')}
+      `);
+    }
+  },
+  {
+    name:'git revert',
+    tag:'UNDO', tagColor:'color-red',
+    desc:'Create a new commit that undoes the changes of a previous commit. Safe for shared history because it does not rewrite commits.',
+    examples:[
+      { code:'git revert a1b2c3d', note:'Revert a specific commit (creates new commit)' },
+      { code:'git revert HEAD~3..HEAD', note:'Revert last 3 commits' },
+      { code:'git revert -n a1b2c3d', note:'Stage the revert but do not commit yet' },
+    ],
+    diagram: () => {
+      const w=340, h=96;
+      return svgWrap(w,h,`
+        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#f85149')}${commit(2,1,'e5f6','#444c56')}
+        ${edge(0,1,1,1)}${edge(1,1,2,1)}
+        ${label(2,1,'main','#3fb950',-22)}${head(2,1,22,24)}
+        ${sLabel(24+UNIT,-8,'← bad commit','#f85149')}
+        ${sLabel(8,84,'git revert c3d4  →  adds new commit that undoes c3d4','#8b949e')}
+        ${commit(3,1,'R','#3fb950')}
+        ${edge(2,1,3,1)}
+        ${label(3,1,'main','#3fb950',-22)}${head(3,1,22,24)}
+        ${sLabel(24+UNIT*3,56,'"revert c3d4"','#3fb950')}
+      `);
+    }
+  },
+  {
+    name:'git clean',
+    tag:'UNDO', tagColor:'color-red',
+    desc:'Remove untracked files and directories from the working tree. Often paired with restore to get a perfectly clean state.',
+    examples:[
+      { code:'git clean -n', note:'Dry run — show what would be deleted' },
+      { code:'git clean -fd', note:'Delete untracked files and directories' },
+      { code:'git clean -fdx', note:'Also remove .gitignore\'d files (e.g. build artifacts)' },
+    ],
+    diagram: () => {
+      const w=320, h=90;
+      return svgWrap(w,h,`
+        ${box(8,8,130,72,'#555','Working Tree (before)')}
+        ${sLabel(18,30,'src/ (tracked)','#e6edf3')}
+        ${sLabel(18,44,'dist/ (untracked)','#f85149')}
+        ${sLabel(18,58,'temp.log (untracked)','#f85149')}
+        ${arrow(142,48,178,48,'#f85149')}
+        ${sLabel(144,44,'clean -fd','#f85149')}
+        ${box(182,8,128,72,'#3fb950','After')}
+        ${sLabel(192,30,'src/ ✓ (unchanged)','#e6edf3')}
+        ${sLabel(192,46,'dist/ ✗ deleted','#8b949e')}
+        ${sLabel(192,62,'temp.log ✗ deleted','#8b949e')}
+      `);
+    }
+  }
+  ]
+},
+
+{
+  id:'history', title:'Inspection & History', color:'#e3b341', bg:'bg-yellow', icon:'🔍',
+  commands:[
+  {
+    name:'git log',
+    tag:'HISTORY', tagColor:'color-yellow',
+    desc:'Browse the commit history. Highly customisable with flags for filtering, formatting, and graph rendering.',
+    examples:[
+      { code:'git log', note:'Full log with diffs' },
+      { code:'git log --oneline --graph --all', note:'Compact graph of all branches' },
+      { code:'git log --author="Ada" --since="2 weeks ago"', note:'Filter by author and date' },
+      { code:'git log -p -- auth.js', note:'Show patches touching auth.js only' },
+      { code:'git log main..feature/login', note:'Commits in feature not yet in main' },
+    ],
+    diagram: () => {
+      const w=320, h=100;
+      return svgWrap(w,h,`
+        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#444c56')}
+        ${commit(1,0,'f1f2','#39c5cf')}${commit(2,0,'g3g4','#39c5cf')}${commit(3,0,'h5h6','#3fb950')}
+        ${edge(0,1,1,1)}${edge(1,1,2,1)}${edge(1,1,1,0)}${edge(1,0,2,0)}${edge(2,0,3,0)}
+        ${label(2,1,'main','#3fb950',-22)}
+        ${label(3,0,'feature/login','#39c5cf',-22)}${head(3,0,22,24)}
+        ${sLabel(8,90,'git log --oneline --graph --all  →  shows this ASCII graph','#8b949e')}
+      `);
+    }
+  },
+  {
+    name:'git show',
+    tag:'HISTORY', tagColor:'color-yellow',
+    desc:'Display the details of a commit: its metadata and the diff it introduced. Also works on tags, trees, and blobs.',
+    examples:[
+      { code:'git show', note:'Show the latest commit' },
+      { code:'git show a1b2c3d', note:'Show a specific commit' },
+      { code:'git show main:auth.js', note:'Show auth.js at tip of main' },
+      { code:'git show v1.2.0', note:'Show what an annotated tag points to' },
+    ],
+    diagram: () => {
+      const w=320, h=90;
+      return svgWrap(w,h,`
+        ${commit(1,1,'e5f6','#3fb950')}
+        ${label(1,1,'HEAD','#f05033',-22)}
+        ${arrow(24+UNIT+R,26+UNIT,200,50,'#e3b341')}
+        ${box(196,10,114,70,'#e3b341','git show output')}
+        ${sLabel(206,30,'commit e5f6…','#e6edf3')}
+        ${sLabel(206,44,'Author: Ada','#e6edf3')}
+        ${sLabel(206,58,'+ added login()','#3fb950')}
+        ${sLabel(206,72,'- removed old()','#f85149')}
+      `);
+    }
+  },
+  {
+    name:'git blame',
+    tag:'HISTORY', tagColor:'color-yellow',
+    desc:'Annotate each line of a file with the commit hash and author that last modified it. Great for tracking down when a bug was introduced.',
+    examples:[
+      { code:'git blame auth.js', note:'Annotate every line in auth.js' },
+      { code:'git blame -L 10,25 auth.js', note:'Only annotate lines 10–25' },
+      { code:'git blame -w auth.js', note:'Ignore whitespace-only changes' },
+    ],
+    diagram: () => {
+      const w=320, h=86;
+      return svgWrap(w,h,`
+        ${box(8,8,300,70,'#444c56','git blame auth.js')}
+        ${sLabel(18,28,'a1b2 (Ada  2024-01) const login = () => {','#e6edf3')}
+        ${sLabel(18,42,'c3d4 (Bob  2024-03)   fetch("/api/auth")','#e6edf3')}
+        ${sLabel(18,56,'e5f6 (Ada  2024-05)   .then(setUser)','#3fb950')}
+        ${sLabel(18,70,'c3d4 (Bob  2024-03) }','#e6edf3')}
+      `);
+    }
+  },
+  {
+    name:'git reflog',
+    tag:'HISTORY', tagColor:'color-yellow',
+    desc:'Show a log of all movements of HEAD — including rebases, resets, and checkouts. Your safety net for recovering "lost" commits.',
+    examples:[
+      { code:'git reflog', note:'Show all HEAD movements' },
+      { code:'git reflog show feature/login', note:'Show history of a specific branch ref' },
+      { code:'git checkout HEAD@{3}', note:'Go back 3 HEAD positions' },
+      { code:'git reset --hard HEAD@{1}', note:'Undo last operation entirely' },
+    ],
+    diagram: () => {
+      const w=320, h=90;
+      return svgWrap(w,h,`
+        ${box(8,8,300,74,'#444c56','git reflog output')}
+        ${sLabel(18,28,'e5f6 HEAD@{0}: commit: feat: add login','#3fb950')}
+        ${sLabel(18,42,'c3d4 HEAD@{1}: rebase: onto main','#e3b341')}
+        ${sLabel(18,56,'a1b2 HEAD@{2}: checkout: moved to main','#8b949e')}
+        ${sLabel(18,70,'f1f2 HEAD@{3}: reset: moving to f1f2','#8b949e')}
+      `);
+    }
+  }
+  ]
+},
+
+{
+  id:'advanced', title:'Advanced & Tags', color:'#ff7eb6', bg:'bg-pink', icon:'🚀',
+  commands:[
+  {
+    name:'git tag',
+    tag:'ADVANCED', tagColor:'color-pink',
+    desc:'Mark a specific commit with a permanent human-readable name (e.g. version numbers). Annotated tags store extra metadata and are recommended for releases.',
+    examples:[
+      { code:'git tag v1.0.0', note:'Lightweight tag at HEAD' },
+      { code:'git tag -a v1.2.0 -m "Release v1.2.0"', note:'Annotated tag with message' },
+      { code:'git push origin v1.2.0', note:'Push a specific tag to remote' },
+      { code:'git tag -d v1.0.0', note:'Delete a local tag' },
+      { code:'git push origin --delete v1.0.0', note:'Delete a remote tag' },
+    ],
+    diagram: () => {
+      const w=320, h=90;
+      return svgWrap(w,h,`
+        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#444c56')}${commit(3,1,'g7h8','#444c56')}
+        ${edge(0,1,1,1)}${edge(1,1,2,1)}${edge(2,1,3,1)}
+        ${label(3,1,'main','#3fb950',-22)}${head(3,1,22,24)}
+        ${sLabel(24+UNIT,-8,'v1.0.0','#ff7eb6')}
+        ${sLabel(24+UNIT*3,-8,'v1.2.0','#ff7eb6')}
+        <line x1="${24+UNIT}" y1="0" x2="${24+UNIT}" y2="${26+UNIT-R-2}" stroke="#ff7eb6" stroke-width="1.5" stroke-dasharray="3,2"/>
+        <line x1="${24+UNIT*3}" y1="0" x2="${24+UNIT*3}" y2="${26+UNIT-R-2}" stroke="#ff7eb6" stroke-width="1.5" stroke-dasharray="3,2"/>
+      `);
+    }
+  },
+  {
+    name:'git bisect',
+    tag:'ADVANCED', tagColor:'color-pink',
+    desc:'Binary-search through commit history to find the commit that introduced a bug. Dramatically faster than manual "git checkout + test" loops.',
+    examples:[
+      { code:'git bisect start', note:'Begin bisect session' },
+      { code:'git bisect bad', note:'Mark current commit as broken' },
+      { code:'git bisect good v1.0.0', note:'Mark v1.0.0 as working' },
+      { code:'git bisect run npm test', note:'Automate — run tests at each step' },
+      { code:'git bisect reset', note:'Return to original HEAD when done' },
+    ],
+    diagram: () => {
+      const w=340, h=96;
+      return svgWrap(w,h,`
+        ${commit(0,1,'★','#3fb950')}${commit(1,1,'?','#e3b341')}${commit(2,1,'?','#e3b341')}${commit(3,1,'?','#e3b341')}${commit(4,1,'✗','#f85149')}
+        ${edge(0,1,1,1)}${edge(1,1,2,1)}${edge(2,1,3,1)}${edge(3,1,4,1)}
+        ${sLabel(24-6,58,'good','#3fb950')}${sLabel(24+UNIT*4-6,58,'bad','#f85149')}
+        ${sLabel(24+UNIT*2-10,72,'check mid','#e3b341')}
+        <line x1="${24+UNIT*2}" y1="${26+UNIT+8}" x2="${24+UNIT*2}" y2="${26+UNIT+20}" stroke="#e3b341" stroke-width="1.5"/>
+        ${sLabel(8,92,'bisect tests the midpoint each time → O(log n) steps','#8b949e')}
+      `);
+    }
+  },
+  {
+    name:'git worktree',
+    tag:'ADVANCED', tagColor:'color-pink',
+    desc:'Check out multiple branches simultaneously into separate directories — all sharing the same .git folder. Perfect for working on two things at once.',
+    examples:[
+      { code:'git worktree add ../hotfix-42 hotfix/bug-42', note:'Check out branch in sibling folder' },
+      { code:'git worktree list', note:'List all linked working trees' },
+      { code:'git worktree remove ../hotfix-42', note:'Remove a worktree when done' },
+    ],
+    diagram: () => {
+      const w=320, h=90;
+      return svgWrap(w,h,`
+        ${box(8,8,90,74,'#58a6ff','~/.git')}
+        ${sLabel(18,42,'shared object','#8b949e')}${sLabel(18,56,'database','#8b949e')}
+        ${arrow(100,30,150,22,'#555')}
+        ${arrow(100,58,150,66,'#555')}
+        ${box(154,8,80,32,'#3fb950','./  (main)')}
+        ${sLabel(164,28,'main','#e6edf3')}
+        ${box(154,52,80,32,'#bc8cff','../hotfix')}
+        ${sLabel(164,72,'hotfix/bug-42','#e6edf3')}
+      `);
+    }
+  },
+  {
+    name:'git submodule',
+    tag:'ADVANCED', tagColor:'color-pink',
+    desc:'Embed another Git repository as a sub-directory of your project at a pinned commit. Each submodule is tracked by its own .git.',
+    examples:[
+      { code:'git submodule add https://github.com/org/lib.git libs/lib', note:'Add a submodule' },
+      { code:'git submodule update --init --recursive', note:'Clone/init all submodules' },
+      { code:'git submodule foreach git pull origin main', note:'Update all submodules' },
+    ],
+    diagram: () => {
+      const w=320, h=90;
+      return svgWrap(w,h,`
+        ${box(8,8,130,72,'#3fb950','my-app (repo)')}
+        ${sLabel(18,30,'src/','#e6edf3')}
+        ${sLabel(18,44,'libs/ui-lib/ ←','#bc8cff')}
+        ${sLabel(18,58,'.gitmodules','#e6edf3')}
+        ${sLabel(18,72,'(pinned SHA)','#8b949e')}
+        ${arrow(142,46,178,46,'#555')}
+        ${box(182,8,130,72,'#bc8cff','ui-lib (separate repo)')}
+        ${sLabel(192,30,'its own .git','#e6edf3')}
+        ${sLabel(192,44,'own commit history','#e6edf3')}
+        ${sLabel(192,58,'pinned to SHA abc123','#8b949e')}
+      `);
+    }
+  }
+  ]
+}
+];
+
+// ─────────────────────────────────────────────────────────────
+//  RENDER
+// ─────────────────────────────────────────────────────────────
+function copyIcon() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+}
+function checkIcon() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+}
+
+function renderSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  let html = '<div class="sidebar-label">Workflow Sections</div>';
+  SECTIONS.forEach((s, i) => {
+    html += `<a class="sidebar-link ${i===0?'active':''}" data-section="${s.id}" onclick="scrollTo('${s.id}')">
+      <span class="sidebar-dot" style="background:${s.color}"></span>
+      ${s.title}
+    </a>`;
+  });
+  sidebar.innerHTML = html;
+}
+
+function renderMain() {
+  const main = document.getElementById('main');
+  let totalCommands = 0;
+  let html = '';
+
+  SECTIONS.forEach(section => {
+    totalCommands += section.commands.length;
+    html += `<section class="section" id="section-${section.id}" data-section="${section.id}">
+      <div class="section-header">
+        <div class="section-icon ${section.bg}">${section.icon}</div>
+        <div>
+          <div class="section-title">${section.title}</div>
+          <div class="section-subtitle">${section.commands.length} command${section.commands.length>1?'s':''}</div>
+        </div>
+      </div>
+      <div class="cards-grid">
+        ${section.commands.map(cmd => renderCard(cmd)).join('')}
+      </div>
+    </section>`;
+  });
+
+  main.innerHTML += html;
+  document.getElementById('cmdCount').textContent = `${totalCommands} commands`;
+}
+
+function renderCard(cmd) {
+  const diagramHTML = cmd.diagram ? cmd.diagram() : '';
+  const examplesHTML = cmd.examples.map(ex => `
+    <div class="example">
+      <div class="example-code"><span style="color:#58a6ff">$</span> ${escHtml(ex.code)}<span class="example-comment">  # ${escHtml(ex.note)}</span></div>
+      <button class="copy-btn" onclick="copyCode(this, ${JSON.stringify(ex.code)})" title="Copy">${copyIcon()}</button>
+    </div>
+  `).join('');
+
+  return `<div class="card" data-name="${cmd.name.toLowerCase()}" data-desc="${cmd.desc.toLowerCase()}">
+    <div class="card-header">
+      <span class="card-title">${escHtml(cmd.name)}</span>
+      <span class="card-tag ${cmd.tagColor}">${cmd.tag}</span>
+    </div>
+    <div class="card-body">
+      <div class="card-desc">${escHtml(cmd.desc)}</div>
+      ${diagramHTML ? `<div class="diagram-wrap"><div class="diagram-label">Diagram</div>${diagramHTML}</div>` : ''}
+      <div class="examples">${examplesHTML}</div>
+    </div>
+  </div>`;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─────────────────────────────────────────────────────────────
+//  INTERACTIVITY
+// ─────────────────────────────────────────────────────────────
+function copyCode(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = checkIcon();
+    btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = copyIcon(); btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+function scrollTo(sectionId) {
+  const el = document.getElementById('section-' + sectionId);
+  if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.toggle('active', l.dataset.section === sectionId));
+}
+
+function setupSearch() {
+  const input = document.getElementById('searchInput');
+  input.addEventListener('input', () => {
+    const q = input.value.toLowerCase().trim();
+    let anyVisible = false;
+    document.querySelectorAll('.section').forEach(section => {
+      let sectionHasVisible = false;
+      section.querySelectorAll('.card').forEach(card => {
+        const match = !q || card.dataset.name.includes(q) || card.dataset.desc.includes(q) ||
+          card.textContent.toLowerCase().includes(q);
+        card.classList.toggle('hidden', !match);
+        if (match) sectionHasVisible = true;
+      });
+      section.classList.toggle('all-hidden', !sectionHasVisible);
+      if (sectionHasVisible) anyVisible = true;
+    });
+    document.getElementById('noResults').style.display = anyVisible ? 'none' : 'block';
+  });
+}
+
+function setupScrollSpy() {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.dataset.section;
+        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.toggle('active', l.dataset.section === id));
+      }
+    });
+  }, { threshold: 0.2 });
+  document.querySelectorAll('.section').forEach(s => observer.observe(s));
+}
+
+// ─────────────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────────────
+renderSidebar();
+renderMain();
+setupSearch();
+setupScrollSpy();
+</script>
+</body>
+</html>
