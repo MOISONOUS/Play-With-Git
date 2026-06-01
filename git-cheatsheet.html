@@ -6,1362 +6,1593 @@
 <title>Git Cheat Sheet</title>
 <style>
 :root {
-  --bg: #0d1117;
-  --surface: #161b22;
-  --surface2: #21262d;
-  --border: #30363d;
-  --text: #e6edf3;
-  --muted: #8b949e;
-  --accent: #f05033;
-  --blue: #58a6ff;
-  --green: #3fb950;
-  --yellow: #e3b341;
-  --purple: #bc8cff;
-  --red: #f85149;
-  --cyan: #39c5cf;
-  --card-radius: 12px;
-  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  --bg:#0d1117; --sf:#161b22; --s2:#21262d; --bd:#30363d;
+  --tx:#e6edf3; --mu:#8b949e;
+  --blue:#58a6ff; --green:#3fb950; --yellow:#e3b341;
+  --purple:#bc8cff; --red:#f85149; --cyan:#39c5cf; --pink:#ff7eb6;
+  --orange:#f05033;
+  --sbw:268px; --sbwc:50px; --tbh:50px;
+  --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+  --r:10px;
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  font-size: 14px;
-  line-height: 1.6;
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px;line-height:1.6;overflow-x:hidden}
 
-/* ── TOP BAR ─────────────────────────────────────── */
-.topbar {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(13,17,23,0.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 16px;
-  padding: 12px 24px;
-}
-.topbar-logo {
-  display: flex; align-items: center; gap: 10px;
-  font-size: 18px; font-weight: 700; color: var(--text);
-  text-decoration: none; white-space: nowrap;
-}
-.topbar-logo svg { width: 28px; height: 28px; }
-.topbar-search {
-  flex: 1; max-width: 480px;
-  position: relative;
-}
-.topbar-search input {
-  width: 100%; padding: 8px 14px 8px 36px;
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--text); font-size: 13px;
-  outline: none; transition: border-color .15s;
-}
-.topbar-search input:focus { border-color: var(--blue); }
-.topbar-search input::placeholder { color: var(--muted); }
-.topbar-search .search-icon {
-  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-  color: var(--muted); pointer-events: none;
-}
-.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-.badge {
-  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
-  background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
-}
-.no-results-msg {
-  display: none; text-align: center; padding: 60px 20px;
-  color: var(--muted); font-size: 15px;
-}
+/* TOOLTIP */
+#tip{position:fixed;z-index:9000;pointer-events:none;
+  background:#1c2128;border:1px solid #444c56;color:#e6edf3;
+  font-size:11.5px;padding:5px 10px;border-radius:6px;
+  box-shadow:0 6px 20px rgba(0,0,0,.55);
+  opacity:0;transition:opacity .12s;max-width:260px;line-height:1.45;
+  white-space:normal}
+#tip.show{opacity:1}
 
-/* ── LAYOUT ──────────────────────────────────────── */
-.layout { display: flex; min-height: calc(100vh - 57px); }
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:500;height:var(--tbh);
+  background:rgba(13,17,23,.95);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;gap:10px;padding:0 16px}
+.hbtn{width:32px;height:32px;border-radius:7px;border:1px solid var(--bd);
+  background:var(--s2);color:var(--mu);cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .12s,color .12s}
+.hbtn:hover{background:#2d333b;color:var(--tx)}
+.hbtn svg{width:15px;height:15px}
+.logo{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:700;
+  color:var(--tx);text-decoration:none;white-space:nowrap}
+.logo svg{width:24px;height:24px}
+.ml{margin-left:auto}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
+  background:var(--s2);border:1px solid var(--bd);color:var(--mu)}
 
-/* ── SIDEBAR ─────────────────────────────────────── */
-.sidebar {
-  width: 220px; flex-shrink: 0;
-  position: sticky; top: 57px; height: calc(100vh - 57px);
-  overflow-y: auto; padding: 20px 0;
-  border-right: 1px solid var(--border);
-  background: var(--surface);
-}
-.sidebar::-webkit-scrollbar { width: 4px; }
-.sidebar::-webkit-scrollbar-track { background: transparent; }
-.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-.sidebar-label {
-  padding: 4px 16px 2px;
-  font-size: 10px; font-weight: 700; letter-spacing: 1px;
-  text-transform: uppercase; color: var(--muted);
-}
-.sidebar-link {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 16px; color: var(--muted);
-  text-decoration: none; font-size: 13px;
-  border-left: 2px solid transparent;
-  transition: all .15s; cursor: pointer;
-}
-.sidebar-link:hover { color: var(--text); background: var(--surface2); }
-.sidebar-link.active { color: var(--text); border-left-color: var(--accent); background: var(--surface2); }
-.sidebar-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+/* LAYOUT */
+.layout{display:flex;height:calc(100vh - var(--tbh))}
 
-/* ── MAIN CONTENT ────────────────────────────────── */
-.main { flex: 1; padding: 32px 40px 80px; max-width: 1100px; }
+/* SIDEBAR */
+.sb{width:var(--sbw);flex-shrink:0;
+  position:sticky;top:var(--tbh);height:calc(100vh - var(--tbh));
+  background:var(--sf);border-right:1px solid var(--bd);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:width .28s cubic-bezier(.4,0,.2,1)}
+.sb.closed{width:var(--sbwc)}
 
-.section { margin-bottom: 56px; }
-.section-header {
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 24px; padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-}
-.section-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-}
-.section-title { font-size: 20px; font-weight: 700; }
-.section-subtitle { font-size: 13px; color: var(--muted); }
+/* search */
+.sb-srch{padding:9px 9px 8px;border-bottom:1px solid var(--bd);flex-shrink:0;
+  overflow:hidden;transition:max-height .28s,opacity .2s,padding .28s;max-height:52px}
+.sb.closed .sb-srch{max-height:0;opacity:0;padding:0;pointer-events:none}
+.sb-srch-box{display:flex;align-items:center;gap:6px;
+  background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:6px 10px;
+  transition:border-color .15s}
+.sb-srch-box:focus-within{border-color:var(--blue)}
+.sb-srch-box svg{color:var(--mu);flex-shrink:0;width:13px;height:13px}
+.sb-srch-box input{background:none;border:none;outline:none;color:var(--tx);
+  font-size:12px;width:100%}
+.sb-srch-box input::placeholder{color:var(--mu)}
 
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
-  gap: 20px;
-}
+/* tree */
+.sb-tree{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 0 16px;
+  transition:opacity .2s}
+.sb.closed .sb-tree{opacity:0;pointer-events:none}
+.sb-tree::-webkit-scrollbar{width:3px}
+.sb-tree::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
 
-/* ── COMMAND CARD ────────────────────────────────── */
-.card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--card-radius); overflow: hidden;
-  transition: border-color .15s, transform .15s;
-}
-.card:hover { border-color: #444c56; transform: translateY(-1px); }
-.card-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px 12px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface2);
-}
-.card-title { font-size: 15px; font-weight: 700; font-family: var(--font-mono); color: var(--text); }
-.card-tag {
-  font-size: 10px; font-weight: 600; padding: 2px 8px;
-  border-radius: 12px; border: 1px solid;
-}
-.card-body { padding: 14px 16px; }
-.card-desc { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+.tsec-hdr{display:flex;align-items:center;gap:6px;
+  padding:6px 10px;margin:1px 5px;border-radius:6px;cursor:pointer;user-select:none;
+  transition:background .12s}
+.tsec-hdr:hover{background:var(--s2)}
+.tsec-hdr.active{background:var(--s2)}
+.tarrow{font-size:8px;color:var(--mu);width:10px;flex-shrink:0;
+  display:inline-block;transition:transform .18s;transform:rotate(0)}
+.tarrow.open{transform:rotate(90deg)}
+.ticon{font-size:13px;flex-shrink:0}
+.tlabel{font-size:12px;font-weight:600;color:var(--tx);flex:1;white-space:nowrap}
+.tcount{font-size:10px;color:var(--mu);background:var(--s2);
+  border:1px solid var(--bd);border-radius:10px;padding:0 6px;flex-shrink:0}
+.tchildren{overflow:hidden;transition:max-height .22s ease;max-height:400px}
+.tchildren.shut{max-height:0}
+.tcmd{display:flex;align-items:center;gap:6px;
+  padding:4px 10px 4px 26px;margin:0 5px;border-radius:5px;
+  cursor:pointer;color:var(--mu);font-size:11.5px;font-family:var(--mono);
+  transition:color .12s,background .12s;white-space:nowrap}
+.tcmd:hover{color:var(--tx);background:var(--s2)}
+.tcmd.on{color:var(--blue);background:rgba(88,166,255,.08)}
+.tcmd-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.tcmd:hover .tcmd-dot,.tcmd.on .tcmd-dot{background:currentColor}
 
-/* ── DIAGRAM ─────────────────────────────────────── */
-.diagram-wrap {
-  background: #0a0e14; border: 1px solid var(--border);
-  border-radius: 8px; padding: 12px 16px; margin-bottom: 12px;
-  overflow-x: auto;
-}
-.diagram-label { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: .5px; margin-bottom: 6px; text-transform: uppercase; }
-.diagram-wrap svg { display: block; }
+/* collapsed rail */
+.sb-rail{display:none;flex-direction:column;align-items:center;padding:8px 0;gap:2px}
+.sb.closed .sb-tree{display:none}
+.sb.closed .sb-srch{display:none}
+.sb.closed .sb-rail{display:flex}
+.rbtn{width:36px;height:36px;border-radius:7px;border:none;background:transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;
+  transition:background .12s;color:var(--mu)}
+.rbtn:hover,.rbtn.on{background:var(--s2)}
 
-/* ── CODE EXAMPLES ───────────────────────────────── */
-.examples { display: flex; flex-direction: column; gap: 6px; }
-.example {
-  display: flex; align-items: stretch;
-  background: #0a0e14; border: 1px solid var(--border);
-  border-radius: 6px; overflow: hidden;
-}
-.example-code {
-  flex: 1; padding: 8px 12px;
-  font-family: var(--font-mono); font-size: 12px;
-  color: var(--text); white-space: pre-wrap; word-break: break-all;
-  line-height: 1.5;
-}
-.example-comment { color: var(--muted); font-style: italic; }
-.copy-btn {
-  padding: 0 12px; background: transparent;
-  border: none; border-left: 1px solid var(--border);
-  cursor: pointer; color: var(--muted); font-size: 12px;
-  transition: all .15s; flex-shrink: 0; display: flex; align-items: center; gap: 4px;
-}
-.copy-btn:hover { background: var(--surface2); color: var(--green); }
-.copy-btn.copied { color: var(--green); }
-.copy-btn svg { width: 13px; height: 13px; }
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:26px 30px 80px;scroll-behavior:smooth}
+.main::-webkit-scrollbar{width:5px}
+.main::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+.no-res{display:none;text-align:center;padding:80px 20px;color:var(--mu);font-size:15px}
 
-/* ── SECTION COLORS ──────────────────────────────── */
-.color-orange { color: #f05033; background: rgba(240,80,51,.12); border-color: rgba(240,80,51,.3); }
-.color-blue   { color: #58a6ff; background: rgba(88,166,255,.12); border-color: rgba(88,166,255,.3); }
-.color-green  { color: #3fb950; background: rgba(63,185,80,.12); border-color: rgba(63,185,80,.3); }
-.color-purple { color: #bc8cff; background: rgba(188,140,255,.12); border-color: rgba(188,140,255,.3); }
-.color-yellow { color: #e3b341; background: rgba(227,179,65,.12); border-color: rgba(227,179,65,.3); }
-.color-red    { color: #f85149; background: rgba(248,81,73,.12); border-color: rgba(248,81,73,.3); }
-.color-cyan   { color: #39c5cf; background: rgba(57,197,207,.12); border-color: rgba(57,197,207,.3); }
-.color-pink   { color: #ff7eb6; background: rgba(255,126,182,.12); border-color: rgba(255,126,182,.3); }
-.bg-orange { background: rgba(240,80,51,.15); }
-.bg-blue   { background: rgba(88,166,255,.15); }
-.bg-green  { background: rgba(63,185,80,.15); }
-.bg-purple { background: rgba(188,140,255,.15); }
-.bg-yellow { background: rgba(227,179,65,.15); }
-.bg-red    { background: rgba(248,81,73,.15); }
-.bg-cyan   { background: rgba(57,197,207,.15); }
-.bg-pink   { background: rgba(255,126,182,.15); }
+/* SECTIONS */
+.section{margin-bottom:50px;scroll-margin-top:18px}
+.sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:20px;
+  padding-bottom:12px;border-bottom:1px solid var(--bd)}
+.sec-icon{width:34px;height:34px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:16px}
+.sec-title{font-size:19px;font-weight:700}
+.sec-sub{font-size:12px;color:var(--mu)}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:18px}
 
-/* ── HIDDEN ──────────────────────────────────────── */
-.card.hidden { display: none; }
-.section.all-hidden { display: none; }
+/* CARD */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);
+  overflow:hidden;transition:border-color .15s,transform .15s,box-shadow .15s}
+.card:hover{border-color:#444c56;transform:translateY(-1px);
+  box-shadow:0 6px 22px rgba(0,0,0,.3)}
+.card.hidden{display:none}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;border-bottom:1px solid var(--bd);background:var(--s2)}
+.card-name{font-size:14px;font-weight:700;font-family:var(--mono);color:var(--tx)}
+.card-tag{font-size:10px;font-weight:700;padding:2px 9px;border-radius:12px;border:1px solid}
+.card-body{padding:13px}
+.card-desc{font-size:12.5px;color:var(--mu);margin-bottom:12px;line-height:1.55}
 
-/* ── SCROLLBAR ───────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+/* DIAGRAM */
+.dw{background:#080c12;border:1px solid #1c2330;border-radius:8px;
+  padding:10px 14px;margin-bottom:12px;overflow-x:auto;
+  transition:border-color .15s}
+.dw:hover{border-color:#2d3a4a}
+.dw svg{display:block}
 
-@media (max-width: 900px) {
-  .sidebar { display: none; }
-  .main { padding: 20px 16px 60px; }
-  .cards-grid { grid-template-columns: 1fr; }
-}
+/* EXAMPLES */
+.exs{display:flex;flex-direction:column;gap:5px}
+.ex{display:flex;align-items:stretch;background:#080c12;
+  border:1px solid var(--bd);border-radius:6px;overflow:hidden}
+.ex-code{flex:1;padding:7px 11px;font-family:var(--mono);font-size:11.5px;
+  color:var(--tx);line-height:1.5;word-break:break-all}
+.ex-note{color:var(--mu);font-style:italic}
+.cpbtn{padding:0 11px;background:transparent;border:none;
+  border-left:1px solid var(--bd);cursor:pointer;color:var(--mu);
+  display:flex;align-items:center;flex-shrink:0;
+  transition:background .12s,color .12s}
+.cpbtn:hover{background:var(--s2);color:var(--green)}
+.cpbtn.done{color:var(--green)}
+.cpbtn svg{width:13px;height:13px}
+
+/* TAG COLORS */
+.to{color:#f05033;background:rgba(240,80,51,.12);border-color:rgba(240,80,51,.3)}
+.tb{color:#58a6ff;background:rgba(88,166,255,.12);border-color:rgba(88,166,255,.3)}
+.tg{color:#3fb950;background:rgba(63,185,80,.12);border-color:rgba(63,185,80,.3)}
+.tp{color:#bc8cff;background:rgba(188,140,255,.12);border-color:rgba(188,140,255,.3)}
+.ty{color:#e3b341;background:rgba(227,179,65,.12);border-color:rgba(227,179,65,.3)}
+.tr{color:#f85149;background:rgba(248,81,73,.12);border-color:rgba(248,81,73,.3)}
+.tc{color:#39c5cf;background:rgba(57,197,207,.12);border-color:rgba(57,197,207,.3)}
+.tk{color:#ff7eb6;background:rgba(255,126,182,.12);border-color:rgba(255,126,182,.3)}
+/* BG */
+.bgo{background:rgba(240,80,51,.13)}
+.bgb{background:rgba(88,166,255,.13)}
+.bgg{background:rgba(63,185,80,.13)}
+.bgp{background:rgba(188,140,255,.13)}
+.bgy{background:rgba(227,179,65,.13)}
+.bgr{background:rgba(248,81,73,.13)}
+.bgc{background:rgba(57,197,207,.13)}
+.bgk{background:rgba(255,126,182,.13)}
+
+.section.all-hidden{display:none}
+@media(max-width:860px){.sb{display:none}.main{padding:16px 14px 60px}.cards-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
+<div id="tip"></div>
+
 <header class="topbar">
-  <a class="topbar-logo" href="#">
-    <svg viewBox="0 0 92 92" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path fill="#F05033" d="M90.155 41.965 50.036 1.846a5.918 5.918 0 0 0-8.372 0l-8.328 8.33 10.566 10.566a7.03 7.03 0 0 1 7.23 1.684 7.043 7.043 0 0 1 1.673 7.277l10.183 10.184a7.026 7.026 0 0 1 7.278 1.672 7.044 7.044 0 0 1 0 9.952 7.049 7.049 0 0 1-9.956 0 7.054 7.054 0 0 1-1.528-7.664l-9.5-9.498V59.36a7.044 7.044 0 0 1 1.86 11.29 7.048 7.048 0 0 1-9.955 0 7.044 7.044 0 0 1 0-9.951 7.03 7.03 0 0 1 2.304-1.537V33.926a7.031 7.031 0 0 1-2.304-1.537 7.054 7.054 0 0 1-1.522-7.682L32.016 14.13 1.845 44.297a5.918 5.918 0 0 0 0 8.372L41.964 92.64a5.918 5.918 0 0 0 8.372 0L90.155 52.52a5.918 5.918 0 0 0 0-8.555"/>
+  <button class="hbtn" id="toggleBtn" title="Toggle sidebar" onclick="toggleSb()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
     </svg>
+  </button>
+  <a class="logo" href="#">
+    <svg viewBox="0 0 92 92" fill="none"><path fill="#F05033" d="M90.155 41.965 50.036 1.846a5.918 5.918 0 0 0-8.372 0l-8.328 8.33 10.566 10.566a7.03 7.03 0 0 1 7.23 1.684 7.043 7.043 0 0 1 1.673 7.277l10.183 10.184a7.026 7.026 0 0 1 7.278 1.672 7.044 7.044 0 0 1 0 9.952 7.049 7.049 0 0 1-9.956 0 7.054 7.054 0 0 1-1.528-7.664l-9.5-9.498V59.36a7.044 7.044 0 0 1 1.86 11.29 7.048 7.048 0 0 1-9.955 0 7.044 7.044 0 0 1 0-9.951 7.03 7.03 0 0 1 2.304-1.537V33.926a7.031 7.031 0 0 1-2.304-1.537 7.054 7.054 0 0 1-1.522-7.682L32.016 14.13 1.845 44.297a5.918 5.918 0 0 0 0 8.372L41.964 92.64a5.918 5.918 0 0 0 8.372 0L90.155 52.52a5.918 5.918 0 0 0 0-8.555"/></svg>
     Git Cheat Sheet
   </a>
-  <div class="topbar-search">
-    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" id="searchInput" placeholder="Search commands, e.g. rebase, stash…" autocomplete="off">
-  </div>
-  <div class="topbar-right">
-    <span class="badge" id="cmdCount"></span>
-  </div>
+  <div class="ml"><span class="badge" id="cmdBadge"></span></div>
 </header>
 
 <div class="layout">
-  <!-- SIDEBAR -->
-  <nav class="sidebar" id="sidebar"></nav>
-
-  <!-- MAIN -->
+  <nav class="sb" id="sb">
+    <div class="sb-srch">
+      <div class="sb-srch-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="srchInput" placeholder="Search commands..." autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+    <div class="sb-tree" id="sbTree"></div>
+    <div class="sb-rail" id="sbRail"></div>
+  </nav>
   <main class="main" id="main">
-    <div class="no-results-msg" id="noResults">No commands match your search.</div>
+    <div class="no-res" id="noRes">No commands match your search.</div>
   </main>
 </div>
 
 <script>
-// ─────────────────────────────────────────────────────────────
-//  SVG DIAGRAM HELPERS
-// ─────────────────────────────────────────────────────────────
-const UNIT = 52, R = 13;
+// ============================================================
+//  SVG DIAGRAM HELPERS  (strict ASCII arithmetic throughout)
+// ============================================================
+var U = 58, R = 13;
 
-function pt(col, row) {
-  return { x: col * UNIT + 24, y: row * UNIT + 26 };
+function gxy(col, row, ox, oy) {
+  ox = ox || 0; oy = oy || 0;
+  return { x: col * U + 26 + ox, y: row * U + 26 + oy };
 }
 
-function svgWrap(w, h, content) {
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="font-family:monospace">
-  <defs>
-    <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-      <path d="M0,0 L6,3 L0,6 Z" fill="#555"/>
-    </marker>
-    <marker id="arr-b" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-      <path d="M0,0 L6,3 L0,6 Z" fill="#58a6ff"/>
-    </marker>
-    <marker id="arr-g" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-      <path d="M0,0 L6,3 L0,6 Z" fill="#3fb950"/>
-    </marker>
-  </defs>
-  ${content}
-</svg>`;
+function svgWrap(w, h, body) {
+  var mrk = function(id, col) {
+    return '<marker id="' + id + '" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">'
+         + '<polygon points="0,0 7,3.5 0,7" fill="' + col + '"/></marker>';
+  };
+  var d = '<defs>'
+    + mrk('ah','#4d5566') + mrk('ahg','#3fb950') + mrk('ahb','#58a6ff')
+    + mrk('ahc','#39c5cf') + mrk('ahp','#bc8cff') + mrk('ahr','#f85149')
+    + mrk('ahk','#ff7eb6') + mrk('aho','#f05033')
+    + '</defs>';
+  return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h
+       + '" xmlns="http://www.w3.org/2000/svg" style="font-family:monospace;overflow:visible">'
+       + d + body + '</svg>';
 }
 
-function commit(col, row, hash, color='#444c56', stroke='#6e7681') {
-  const {x,y} = pt(col, row);
-  return `<circle cx="${x}" cy="${y}" r="${R}" fill="${color}" stroke="${stroke}" stroke-width="1.5"/>
-  <text x="${x}" y="${y+4}" text-anchor="middle" fill="#e6edf3" font-size="8" font-weight="600">${hash}</text>`;
+// Commit circle
+function C(col, row, hash, fill, tip, ox, oy) {
+  fill = fill || '#2d333b';
+  tip = tip || ''; ox = ox || 0; oy = oy || 0;
+  var p = gxy(col, row, ox, oy);
+  var stroke = (fill === '#2d333b') ? '#444c56' : fill;
+  var ta = tip ? ' data-tip="' + tip.replace(/"/g, '&quot;') + '"' : '';
+  return '<g' + ta + '>'
+    + '<circle cx="' + p.x + '" cy="' + p.y + '" r="' + R + '" fill="' + fill
+    + '" stroke="' + stroke + '" stroke-width="1.5"/>'
+    + '<text x="' + p.x + '" y="' + (p.y + 4) + '" text-anchor="middle" fill="#fff"'
+    + ' font-size="9" font-weight="700">' + hash + '</text></g>';
 }
 
-function edge(c1, r1, c2, r2, color='#444c56', dashed=false) {
-  const a = pt(c1, r1), b = pt(c2, r2);
-  const dx = b.x - a.x, dy = b.y - a.y;
-  const len = Math.sqrt(dx*dx + dy*dy);
-  const nx = dx/len, ny = dy/len;
-  const x1 = a.x + nx*(R+1), y1 = a.y + ny*(R+1);
-  const x2 = b.x - nx*(R+3), y2 = b.y - ny*(R+3);
-  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2" stroke-dasharray="${dashed?'5,3':''}" marker-end="url(#arr)"/>`;
+// Straight edge
+function E(c1, r1, c2, r2, color, mid, ox, oy) {
+  color = color || '#444c56'; mid = mid || 'ah'; ox = ox || 0; oy = oy || 0;
+  var a = gxy(c1, r1, ox, oy), b = gxy(c2, r2, ox, oy);
+  var dx = b.x - a.x, dy = b.y - a.y, len = Math.sqrt(dx * dx + dy * dy);
+  if (len < 1) return '';
+  var nx = dx / len, ny = dy / len;
+  return '<line x1="' + (a.x + nx * (R + 1)) + '" y1="' + (a.y + ny * (R + 1))
+       + '" x2="' + (b.x - nx * (R + 4)) + '" y2="' + (b.y - ny * (R + 4))
+       + '" stroke="' + color + '" stroke-width="2" marker-end="url(#' + mid + ')"/>';
 }
 
-function edgeCurve(c1, r1, c2, r2, color='#444c56') {
-  const a = pt(c1, r1), b = pt(c2, r2);
-  const mx = (a.x + b.x) / 2;
-  return `<path d="M${a.x+R} ${a.y} C${mx} ${a.y} ${mx} ${b.y} ${b.x-R} ${b.y}" fill="none" stroke="${color}" stroke-width="2" marker-end="url(#arr)"/>`;
+// Curved edge (commits on different rows)
+function EC(c1, r1, c2, r2, color, mid, ox, oy) {
+  color = color || '#444c56'; mid = mid || 'ah'; ox = ox || 0; oy = oy || 0;
+  var a = gxy(c1, r1, ox, oy), b = gxy(c2, r2, ox, oy);
+  var mx = (a.x + b.x) / 2;
+  return '<path d="M' + a.x + ' ' + a.y + ' C' + mx + ' ' + a.y
+       + ' ' + mx + ' ' + b.y + ' ' + b.x + ' ' + b.y
+       + '" fill="none" stroke="' + color + '" stroke-width="2" marker-end="url(#' + mid + ')"/>';
 }
 
-function label(col, row, text, color, dy=-22, dx=0) {
-  const {x,y} = pt(col, row);
-  const lx = x + dx, ly = y + dy;
-  const w = text.length * 6.5 + 12;
-  return `<rect x="${lx-w/2}" y="${ly-9}" width="${w}" height="18" rx="9" fill="${color}" opacity="0.9"/>
-  <text x="${lx}" y="${ly+4}" text-anchor="middle" fill="white" font-size="9" font-weight="700">${text}</text>`;
+// Branch label pill
+function L(col, row, text, color, tip, dy, dx, ox, oy) {
+  dy = (dy === undefined || dy === null) ? -20 : dy;
+  dx = dx || 0; ox = ox || 0; oy = oy || 0;
+  tip = tip || '';
+  var p = gxy(col, row, ox, oy);
+  var lx = p.x + dx, ly = p.y + dy;
+  var w = text.length * 6.2 + 14;
+  var ta = tip ? ' data-tip="' + tip.replace(/"/g, '&quot;') + '"' : '';
+  return '<g' + ta + '>'
+    + '<rect x="' + (lx - w / 2) + '" y="' + (ly - 9) + '" width="' + w + '" height="18"'
+    + ' rx="9" fill="' + color + '"/>'
+    + '<text x="' + lx + '" y="' + (ly + 4) + '" text-anchor="middle" fill="#fff"'
+    + ' font-size="8.5" font-weight="700">' + text + '</text></g>';
 }
 
-function head(col, row, dy=-22, dx=0) {
-  const {x,y} = pt(col, row);
-  const lx = x + dx, ly = y + dy;
-  return `<rect x="${lx-18}" y="${ly-9}" width="36" height="18" rx="3" fill="#f05033" opacity="0.9"/>
-  <text x="${lx}" y="${ly+4}" text-anchor="middle" fill="white" font-size="9" font-weight="700">HEAD</text>`;
+// HEAD marker
+function HD(col, row, tip, dy, dx, ox, oy) {
+  dy = (dy === undefined || dy === null) ? -20 : dy;
+  dx = dx || 0; ox = ox || 0; oy = oy || 0;
+  tip = tip || 'HEAD - current checkout position';
+  var p = gxy(col, row, ox, oy);
+  var lx = p.x + dx, ly = p.y + dy;
+  return '<g data-tip="' + tip.replace(/"/g, '&quot;') + '">'
+    + '<rect x="' + (lx - 24) + '" y="' + (ly - 9) + '" width="48" height="18"'
+    + ' rx="4" fill="#f05033"/>'
+    + '<text x="' + lx + '" y="' + (ly + 4) + '" text-anchor="middle" fill="#fff"'
+    + ' font-size="8.5" font-weight="800">HEAD</text></g>';
 }
 
-function arrow(x1,y1,x2,y2,color='#555') {
-  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="2.5" stroke-dasharray="4,2" marker-end="url(#arr)"/>`;
+// Divider line with "after" label
+function DIV(x, h) {
+  return '<line x1="' + x + '" y1="4" x2="' + x + '" y2="' + (h - 4)
+       + '" stroke="#243040" stroke-width="1.5" stroke-dasharray="5,3"/>'
+       + '<rect x="' + (x + 3) + '" y="6" width="34" height="14" rx="7" fill="#243040"/>'
+       + '<text x="' + (x + 20) + '" y="17" fill="#6b7a90" font-size="8" font-weight="700">after</text>';
 }
 
-function divider(x, h) {
-  return `<line x1="${x}" y1="8" x2="${x}" y2="${h-8}" stroke="#30363d" stroke-width="1" stroke-dasharray="4,3"/>
-  <text x="${x+6}" y="16" fill="#555" font-size="9">after</text>`;
+// Plain text
+function T(x, y, text, color, size, weight) {
+  color = color || '#8b949e'; size = size || 9; weight = weight || 400;
+  return '<text x="' + x + '" y="' + y + '" fill="' + color + '" font-size="' + size
+       + '" font-weight="' + weight + '">' + text + '</text>';
 }
 
-function sLabel(x, y, text, color='#8b949e') {
-  return `<text x="${x}" y="${y}" fill="${color}" font-size="9" font-weight="600">${text}</text>`;
+// Filled box
+function B(x, y, w, h, color, label, tip) {
+  tip = tip || '';
+  var ta = tip ? ' data-tip="' + tip.replace(/"/g, '&quot;') + '"' : '';
+  return '<g' + ta + '>'
+    + '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h
+    + '" rx="7" fill="' + color + '22" stroke="' + color + '55" stroke-width="1"/>'
+    + '<text x="' + (x + w / 2) + '" y="' + (y + h / 2 + 4) + '" text-anchor="middle"'
+    + ' fill="' + color + '" font-size="10" font-weight="700">' + label + '</text></g>';
 }
 
-function box(x,y,w,h,color,text) {
-  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${color}" opacity="0.15" stroke="${color}" stroke-width="1" stroke-opacity="0.4"/>
-  <text x="${x+w/2}" y="${y+h/2+4}" text-anchor="middle" fill="${color}" font-size="10" font-weight="600">${text}</text>`;
+// Arrow (absolute coords)
+function A(x1, y1, x2, y2, color, mid) {
+  color = color || '#4d5566'; mid = mid || 'ah';
+  return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2
+       + '" stroke="' + color + '" stroke-width="2" marker-end="url(#' + mid + ')"/>';
 }
 
-// ─────────────────────────────────────────────────────────────
+// ============================================================
 //  COMMAND DATA
-// ─────────────────────────────────────────────────────────────
-const SECTIONS = [
+// ============================================================
+var SECS = [
 {
-  id:'setup', title:'Setup & Config', color:'#f05033', bg:'bg-orange', icon:'⚙️',
-  commands:[
+  id:'setup', title:'Setup & Config', color:'#f05033', bg:'bgo', icon:'&#9881;',
+  cmds:[
   {
-    name:'git config',
-    tag:'CONFIG', tagColor:'color-orange',
-    desc:'Set user-level or repo-level configuration values. Use --global for user-wide settings stored in ~/.gitconfig.',
-    examples:[
-      { code:'git config --global user.name "Ada Lovelace"', note:'Set your name globally' },
-      { code:'git config --global user.email "ada@example.com"', note:'Set your email globally' },
-      { code:'git config --list --show-origin', note:'List all settings and where they come from' },
+    name:'git config', id:'cfg',
+    tag:'CONFIG', tc:'to',
+    desc:'Set identity and preferences globally (~/.gitconfig) or per-repo (.git/config). Local settings override global ones.',
+    ex:[
+      {c:'git config --global user.name "Ada Lovelace"', n:'Set global username'},
+      {c:'git config --global user.email "ada@example.com"', n:'Set global email'},
+      {c:'git config --list --show-origin', n:'List all settings and where each comes from'},
+      {c:'git config --global core.editor "code --wait"', n:'Set VS Code as default editor'}
     ],
-    diagram: () => {
-      const w=320, h=90;
-      return svgWrap(w,h,`
-        ${box(10,10,140,68,'#f05033','~/.gitconfig')}
-        ${sLabel(20,32,'user.name = "Ada"','#e6edf3')}
-        ${sLabel(20,46,'user.email = "ada@…"','#e6edf3')}
-        ${sLabel(20,60,'core.editor = vim','#e6edf3')}
-        ${box(170,10,140,68,'#58a6ff','.git/config (local)')}
-        ${sLabel(180,32,'user.email = "work@…"','#e6edf3')}
-        ${sLabel(180,46,'core.autocrlf = false','#e6edf3')}
-        ${sLabel(178,62,'← overrides global','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 96;
+      return svgWrap(w, h,
+        B(6, 8, 150, 78, '#f05033', '~/.gitconfig', 'Global: applies to every repo on this machine')
+        + T(16, 30, 'user.name = "Ada"', '#e6edf3', 9)
+        + T(16, 44, 'user.email = "ada@..."', '#e6edf3', 9)
+        + T(16, 58, 'core.editor = code', '#e6edf3', 9)
+        + T(16, 72, '<-- lower priority', '#8b949e', 8)
+        + B(164, 8, 166, 78, '#58a6ff', '.git/config', 'Local: overrides global for this repo only')
+        + T(174, 30, 'user.email = "work@..."', '#e6edf3', 9)
+        + T(174, 44, 'core.autocrlf = false', '#e6edf3', 9)
+        + T(174, 58, 'branch settings...', '#e6edf3', 9)
+        + T(174, 72, '<-- higher priority', '#58a6ff', 8)
+      );
     }
   },
   {
-    name:'git help',
-    tag:'CONFIG', tagColor:'color-orange',
-    desc:'Open the manual page for any git command, or get a quick synopsis with -h.',
-    examples:[
-      { code:'git help commit', note:'Open full man page for commit' },
-      { code:'git commit -h', note:'Quick one-screen synopsis' },
-      { code:'git help -a', note:'List all available sub-commands' },
+    name:'git help', id:'help',
+    tag:'CONFIG', tc:'to',
+    desc:'Open the full manual page for any command, or get a quick synopsis with -h.',
+    ex:[
+      {c:'git help commit', n:'Open man page for git-commit'},
+      {c:'git commit -h', n:'Print short usage synopsis'},
+      {c:'git help -a', n:'List every available sub-command'}
     ],
-    diagram: () => {
-      const w=280, h=80;
-      return svgWrap(w,h,`
-        ${box(10,8,100,60,'#f05033','git help X')}
-        ${arrow(112,38,168,38,'#555')}
-        ${box(170,8,100,60,'#58a6ff','man git-X')}
-        ${sLabel(14,70,'git commit -h → short usage','#8b949e')}
-      `);
+    diag: function() {
+      var w = 300, h = 80;
+      return svgWrap(w, h,
+        B(8, 10, 106, 60, '#f05033', 'git help X', 'Opens the full git manual page')
+        + A(118, 40, 156, 40, '#f05033', 'aho')
+        + B(160, 10, 130, 60, '#58a6ff', 'man git-X', 'Full manual with all flags and examples')
+        + T(8, 76, 'git X -h  ->  quick one-screen synopsis', '#555', 8.5)
+      );
     }
   }
   ]
 },
 
 {
-  id:'repo', title:'Creating Repositories', color:'#58a6ff', bg:'bg-blue', icon:'📁',
-  commands:[
+  id:'repo', title:'Creating Repositories', color:'#58a6ff', bg:'bgb', icon:'&#128193;',
+  cmds:[
   {
-    name:'git init',
-    tag:'REPO', tagColor:'color-blue',
-    desc:'Create an empty Git repository in the current directory (or a given path). Creates a .git/ folder with all internal objects.',
-    examples:[
-      { code:'git init', note:'Initialise repo in current folder' },
-      { code:'git init my-project', note:'Initialise in a new folder' },
-      { code:'git init --bare repo.git', note:'Bare repo (no working tree, for servers)' },
+    name:'git init', id:'init',
+    tag:'REPO', tc:'tb',
+    desc:'Create a new Git repository in the current directory. Adds a .git/ folder with all tracking internals.',
+    ex:[
+      {c:'git init', n:'Initialise in current directory'},
+      {c:'git init my-project', n:'Create folder and initialise inside it'},
+      {c:'git init --bare repo.git', n:'Bare repo (server use, no working tree)'}
     ],
-    diagram: () => {
-      const w=320, h=96;
-      return svgWrap(w,h,`
-        ${sLabel(10,14,'Before','#8b949e')}
-        ${box(10,20,100,64,'#555','my-project/')}
-        ${sLabel(24,46,'app.js','#e6edf3')}
-        ${sLabel(24,60,'README','#e6edf3')}
-        ${divider(130,96)}
-        ${sLabel(144,14,'After','#8b949e')}
-        ${box(140,20,160,64,'#58a6ff','my-project/')}
-        ${sLabel(154,38,'.git/  ← new','#58a6ff')}
-        ${sLabel(154,52,'app.js','#e6edf3')}
-        ${sLabel(154,66,'README','#e6edf3')}
-      `);
+    diag: function() {
+      var w = 340, h = 100;
+      return svgWrap(w, h,
+        T(10, 13, 'Before', '#8b949e', 9, 600)
+        + B(8, 18, 136, 74, '#4d5566', 'my-project/', 'Folder with files, not yet a git repo')
+        + T(20, 40, 'src/app.js', '#e6edf3', 9)
+        + T(20, 54, 'README.md', '#e6edf3', 9)
+        + T(20, 68, '(untracked)', '#8b949e', 8)
+        + DIV(158, 100)
+        + T(172, 13, 'After', '#8b949e', 9, 600)
+        + B(162, 18, 168, 74, '#58a6ff', 'my-project/', 'Now a git repository')
+        + T(174, 36, '.git/  <-- created', '#58a6ff', 9, 700)
+        + T(174, 50, 'src/app.js', '#e6edf3', 9)
+        + T(174, 64, 'README.md', '#e6edf3', 9)
+        + T(174, 78, '(tracked)', '#3fb950', 8)
+      );
     }
   },
   {
-    name:'git clone',
-    tag:'REPO', tagColor:'color-blue',
-    desc:'Copy a remote repository to your machine. Clones history, branches, and tags. Sets up "origin" remote automatically.',
-    examples:[
-      { code:'git clone https://github.com/org/repo.git', note:'Clone into ./repo' },
-      { code:'git clone git@github.com:org/repo.git my-dir', note:'Clone into custom folder' },
-      { code:'git clone --depth 1 https://github.com/org/repo.git', note:'Shallow clone (latest commit only)' },
+    name:'git clone', id:'clone',
+    tag:'REPO', tc:'tb',
+    desc:'Download a complete copy of a remote repository including all commits, branches, and tags. Sets up "origin" automatically.',
+    ex:[
+      {c:'git clone https://github.com/org/repo.git', n:'Clone into ./repo'},
+      {c:'git clone git@github.com:org/repo.git app', n:'Clone into custom folder'},
+      {c:'git clone --depth 1 https://github.com/org/repo.git', n:'Shallow clone (latest commit only)'},
+      {c:'git clone --branch feature/login https://github.com/org/repo.git', n:'Clone a specific branch'}
     ],
-    diagram: () => {
-      const w=320, h=90;
-      return svgWrap(w,h,`
-        ${box(10,12,110,66,'#8b949e','github.com/org/repo')}
-        ${sLabel(24,34,'main','#e6edf3')}
-        ${sLabel(24,48,'feature/login','#e6edf3')}
-        ${sLabel(24,62,'tags: v1.0','#e6edf3')}
-        ${arrow(124,44,182,44,'#58a6ff')}
-        ${sLabel(134,40,'clone','#58a6ff')}
-        ${box(186,12,120,66,'#58a6ff','~/repo (local)')}
-        ${sLabel(200,34,'main ✓','#e6edf3')}
-        ${sLabel(200,48,'origin/main ✓','#e6edf3')}
-        ${sLabel(200,62,'origin → remote','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 92;
+      return svgWrap(w, h,
+        B(6, 6, 118, 78, '#8b949e', 'github.com/org/repo', 'Remote: hosted repository on a server')
+        + T(16, 28, 'main', '#e6edf3', 9)
+        + T(16, 42, 'feature/login', '#e6edf3', 9)
+        + T(16, 56, 'hotfix/bug-42', '#e6edf3', 9)
+        + T(16, 70, 'tags: v1.0, v1.2', '#8b949e', 8)
+        + A(128, 46, 168, 46, '#58a6ff', 'ahb')
+        + T(132, 40, 'clone', '#58a6ff', 9, 700)
+        + B(172, 6, 160, 78, '#58a6ff', '~/app/ (local)', 'Full local copy with remote-tracking branches')
+        + T(182, 28, 'main  (checked out)', '#e6edf3', 9)
+        + T(182, 42, 'origin/main  (tracking)', '#8b949e', 8)
+        + T(182, 56, 'origin/feature/login', '#8b949e', 8)
+        + T(182, 70, 'remote: origin  -> URL', '#8b949e', 8)
+      );
     }
   }
   ]
 },
 
 {
-  id:'staging', title:'Staging Area', color:'#e3b341', bg:'bg-yellow', icon:'📋',
-  commands:[
+  id:'staging', title:'Staging Area', color:'#e3b341', bg:'bgy', icon:'&#128203;',
+  cmds:[
   {
-    name:'git status',
-    tag:'STAGING', tagColor:'color-yellow',
-    desc:'Show which files are tracked, modified, staged, or untracked. Your constant companion for understanding the working tree.',
-    examples:[
-      { code:'git status', note:'Full output' },
-      { code:'git status -s', note:'Short/porcelain format: M=modified, ??=untracked' },
-      { code:'git status -sb', note:'Short format + branch info' },
+    name:'git status', id:'status',
+    tag:'STAGING', tc:'ty',
+    desc:'Show the state of your working tree and index. Tells you which files are modified, staged, untracked, or conflicted.',
+    ex:[
+      {c:'git status', n:'Full output with hints'},
+      {c:'git status -s', n:'Short format: M=modified, A=added, ??=untracked'},
+      {c:'git status -sb', n:'Short format + branch info'}
     ],
-    diagram: () => {
-      const w=320, h=100;
-      return svgWrap(w,h,`
-        ${box(8,8,90,82,'#555','Working Tree')}
-        ${sLabel(14,28,'auth.js','#e6edf3')}
-        ${sLabel(14,42,'  modified','#e3b341')}
-        ${sLabel(14,56,'db.js','#e6edf3')}
-        ${sLabel(14,70,'  untracked','#8b949e')}
-        ${box(108,8,90,82,'#e3b341','Staging Area')}
-        ${sLabel(114,28,'login.js','#e6edf3')}
-        ${sLabel(114,42,'  staged','#3fb950')}
-        ${box(210,8,100,82,'#58a6ff','History')}
-        ${sLabel(218,28,'a1b2 main','#e6edf3')}
-        ${sLabel(218,42,'committed','#8b949e')}
-        ${sLabel(10,98,'git status shows all three zones','#555')}
-      `);
+    diag: function() {
+      var w = 340, h = 106;
+      return svgWrap(w, h,
+        B(6, 6, 96, 90, '#4d5566', 'Working Tree', 'Files on disk you have edited')
+        + T(14, 26, 'auth.js', '#e6edf3', 9)
+        + T(14, 38, ' modified &#9679;', '#e3b341', 8.5, 700)
+        + T(14, 54, 'db.js', '#e6edf3', 9)
+        + T(14, 66, ' untracked ??', '#8b949e', 8)
+        + T(14, 82, 'style.css', '#e6edf3', 9)
+        + T(14, 94, ' staged &#9733;', '#3fb950', 8.5, 700)
+        + B(110, 6, 98, 90, '#e3b341', 'Stage / Index', 'Snapshot for the next commit')
+        + T(120, 34, 'style.css', '#e6edf3', 9)
+        + T(120, 46, ' ready &#9733;', '#3fb950', 8.5, 700)
+        + T(120, 66, '(other files', '#8b949e', 8)
+        + T(120, 78, ' not here)', '#8b949e', 8)
+        + B(216, 6, 116, 90, '#58a6ff', 'HEAD commit', 'Last snapshot committed on this branch')
+        + T(226, 34, 'auth.js (old v)', '#e6edf3', 9)
+        + T(226, 48, 'db.js', '#e6edf3', 9)
+        + T(226, 62, 'style.css (old v)', '#e6edf3', 9)
+        + T(226, 76, 'committed', '#8b949e', 8)
+      );
     }
   },
   {
-    name:'git add',
-    tag:'STAGING', tagColor:'color-yellow',
-    desc:'Stage changes from the working tree into the index (staging area). The staged snapshot is what gets committed.',
-    examples:[
-      { code:'git add index.html', note:'Stage a specific file' },
-      { code:'git add src/', note:'Stage everything under src/' },
-      { code:'git add -p', note:'Interactively pick hunks to stage' },
-      { code:'git add -A', note:'Stage all changes (new, modified, deleted)' },
+    name:'git add', id:'add',
+    tag:'STAGING', tc:'ty',
+    desc:'Move changes into the staging area (index). Only staged changes are included in the next commit.',
+    ex:[
+      {c:'git add index.html', n:'Stage one file'},
+      {c:'git add src/', n:'Stage everything under src/'},
+      {c:'git add -p', n:'Interactively pick which hunks to stage'},
+      {c:'git add -A', n:'Stage all changes: new, modified, and deleted'}
     ],
-    diagram: () => {
-      const w=320, h=90;
-      return svgWrap(w,h,`
-        ${box(8,10,110,68,'#555','Working Tree')}
-        ${sLabel(18,30,'login.js  ●','#e3b341')}
-        ${sLabel(18,44,'auth.js   ●','#e3b341')}
-        ${sLabel(18,58,'(modified)','#8b949e')}
-        ${arrow(122,44,174,44,'#e3b341')}
-        ${sLabel(126,40,'git add','#e3b341')}
-        ${box(178,10,130,68,'#e3b341','Staging Area')}
-        ${sLabel(188,30,'login.js  ★','#3fb950')}
-        ${sLabel(188,44,'auth.js   ★','#3fb950')}
-        ${sLabel(188,58,'ready to commit','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 94;
+      return svgWrap(w, h,
+        B(6, 8, 126, 76, '#4d5566', 'Working Tree', 'Your edited files on disk')
+        + T(18, 32, 'login.js  &#9679; modified', '#e3b341', 9)
+        + T(18, 46, 'auth.js   &#9679; modified', '#e3b341', 9)
+        + T(18, 68, 'git add login.js', '#e3b341', 8, 600)
+        + A(136, 46, 172, 46, '#e3b341', 'ah')
+        + T(140, 40, 'stage', '#e3b341', 9, 700)
+        + B(176, 8, 156, 76, '#e3b341', 'Staging Area', 'These changes will become the next commit')
+        + T(186, 32, 'login.js  &#9733; staged', '#3fb950', 9, 700)
+        + T(186, 48, 'auth.js   (not yet)', '#8b949e', 9)
+        + T(186, 68, 'ready to commit', '#8b949e', 8)
+      );
     }
   },
   {
-    name:'git diff',
-    tag:'STAGING', tagColor:'color-yellow',
-    desc:'Show line-by-line differences. Without args: working tree vs. index. With --staged: index vs. last commit.',
-    examples:[
-      { code:'git diff', note:'Working tree vs. staging (unstaged changes)' },
-      { code:'git diff --staged', note:'Staged changes vs. last commit' },
-      { code:'git diff main..feature/login', note:'Diff between two branches' },
-      { code:'git diff HEAD~2 HEAD -- auth.js', note:'Diff a file across 2 commits' },
+    name:'git diff', id:'diff',
+    tag:'STAGING', tc:'ty',
+    desc:'Show line-by-line differences. Without flags: working tree vs. index. With --staged: index vs. last commit.',
+    ex:[
+      {c:'git diff', n:'Unstaged changes: working tree vs. index'},
+      {c:'git diff --staged', n:'Staged changes: index vs. HEAD'},
+      {c:'git diff main..feature/login', n:'All changes between two branches'},
+      {c:'git diff HEAD~2 HEAD -- auth.js', n:'How auth.js changed over last 2 commits'}
     ],
-    diagram: () => {
-      const w=320, h=90;
-      return svgWrap(w,h,`
-        ${box(8,10,88,68,'#58a6ff','HEAD commit')}
-        ${sLabel(18,46,'const x = 1','#8b949e')}
-        ${box(104,10,90,30,'#e3b341','Staged index')}
-        ${sLabel(114,30,'const x = 2','#e6edf3')}
-        ${box(104,48,90,30,'#555','Working tree')}
-        ${sLabel(114,68,'const x = 3','#e6edf3')}
-        ${sLabel(198,24,'←git diff --staged','#e3b341')}
-        ${sLabel(198,63,'←git diff (unstaged)','#8b949e')}
-        ${arrow(96,26,102,26,'#e3b341')}
-        ${arrow(96,64,102,64,'#555')}
-      `);
+    diag: function() {
+      var w = 340, h = 100;
+      return svgWrap(w, h,
+        B(6, 6, 90, 84, '#58a6ff', 'HEAD commit', 'The last committed snapshot')
+        + T(16, 44, 'const x = 1', '#8b949e', 8.5)
+        + T(16, 56, '(committed)', '#4d5566', 8)
+        + B(104, 6, 106, 40, '#e3b341', 'Staged (index)', 'Changes run through git add')
+        + T(116, 30, 'const x = 2', '#e6edf3', 8.5)
+        + B(104, 54, 106, 36, '#4d5566', 'Working Tree', 'File currently on disk')
+        + T(116, 76, 'const x = 3', '#e6edf3', 8.5)
+        + A(212, 24, 274, 24, '#e3b341', 'ah')
+        + T(218, 18, 'git diff --staged', '#e3b341', 8, 600)
+        + A(212, 72, 274, 72, '#4d5566', 'ah')
+        + T(218, 66, 'git diff', '#8b949e', 8, 600)
+        + B(276, 6, 58, 84, '#4d5566', 'diff', 'The patch output shown in your terminal')
+        + T(290, 48, '+-', '#3fb950', 14, 700)
+      );
     }
   },
   {
-    name:'git rm / git mv',
-    tag:'STAGING', tagColor:'color-yellow',
-    desc:'Remove or rename tracked files and stage the result in one step, instead of doing it manually and re-adding.',
-    examples:[
-      { code:'git rm legacy.js', note:'Delete file and stage the removal' },
-      { code:'git rm --cached config.env', note:'Un-track file but keep it on disk' },
-      { code:'git mv old-name.js new-name.js', note:'Rename and stage — preserves history' },
+    name:'git rm / git mv', id:'rm',
+    tag:'STAGING', tc:'ty',
+    desc:'Remove or rename tracked files and stage the change in one step, skipping the manual delete-then-add workflow.',
+    ex:[
+      {c:'git rm legacy.js', n:'Delete file and stage the removal'},
+      {c:'git rm --cached config.env', n:'Un-track file but keep it on disk'},
+      {c:'git mv utils.js helpers/utils.js', n:'Rename/move and stage it'}
     ],
-    diagram: () => {
-      const w=320, h=84;
-      return svgWrap(w,h,`
-        ${box(8,8,130,68,'#555','Before')}
-        ${sLabel(18,28,'utils.js','#e6edf3')}
-        ${sLabel(18,42,'helpers.js','#e6edf3')}
-        ${arrow(142,42,180,42,'#e3b341')}
-        ${sLabel(142,38,'git mv','#e3b341')}
-        ${box(186,8,122,68,'#e3b341','Staged')}
-        ${sLabel(196,28,'utils.js','#8b949e')}
-        ${sLabel(196,42,'helpers.js → util-helpers.js','#3fb950')}
-        ${sLabel(196,62,'staged ★','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 90;
+      return svgWrap(w, h,
+        B(6, 6, 140, 76, '#4d5566', 'Before', 'Files tracked by git')
+        + T(16, 28, 'src/utils.js', '#e6edf3', 9)
+        + T(16, 42, 'src/helpers.js', '#e6edf3', 9)
+        + T(16, 56, 'legacy.js', '#e6edf3', 9)
+        + A(150, 44, 182, 44, '#e3b341', 'ah')
+        + T(154, 38, 'mv / rm', '#e3b341', 9, 700)
+        + B(186, 6, 146, 76, '#e3b341', 'Staged', 'Rename/delete staged - just commit')
+        + T(196, 28, 'utils.js -> shared/utils.js', '#3fb950', 8.5, 700)
+        + T(196, 44, 'src/helpers.js  (unchanged)', '#e6edf3', 8.5)
+        + T(196, 60, 'legacy.js  (removed)', '#f85149', 8.5)
+      );
     }
   }
   ]
 },
 
 {
-  id:'commit', title:'Committing', color:'#3fb950', bg:'bg-green', icon:'💾',
-  commands:[
+  id:'commit', title:'Committing', color:'#3fb950', bg:'bgg', icon:'&#128190;',
+  cmds:[
   {
-    name:'git commit',
-    tag:'COMMIT', tagColor:'color-green',
-    desc:'Record the staged snapshot permanently in history. Each commit gets a unique SHA-1 hash and points to its parent.',
-    examples:[
-      { code:'git commit -m "feat: add login form"', note:'Commit with inline message' },
-      { code:'git commit', note:'Open editor for multi-line message' },
-      { code:'git commit -am "fix: typo in auth"', note:'Stage all tracked + commit in one step' },
+    name:'git commit', id:'commit',
+    tag:'COMMIT', tc:'tg',
+    desc:'Save the staged snapshot permanently in history. Each commit has a unique SHA-1 hash and points to its parent.',
+    ex:[
+      {c:'git commit -m "feat: add login form"', n:'Commit with inline message'},
+      {c:'git commit', n:'Open editor for a multi-line message'},
+      {c:'git commit -am "fix: typo in auth"', n:'Auto-stage all tracked changes + commit'}
     ],
-    diagram: () => {
-      const w=340, h=96;
-      return svgWrap(w,h,`
-        ${sLabel(8,14,'Before','#8b949e')}
-        ${commit(0,0,'a1b2','#444c56')}${commit(1,0,'c3d4','#444c56')}
-        ${edge(0,0,1,0)}
-        ${label(1,0,'main','#3fb950')}${head(1,0,22,24)}
-        ${sLabel(10,58,'login.js staged','#e3b341')}
-        ${divider(164,96)}
-        ${sLabel(178,14,'After','#8b949e')}
-        ${commit(2,0,'a1b2','#444c56',pt(2,0).x-52+164,undefined)}
-        ${commit(3,0,'c3d4','#444c56',pt(3,0).x-52+164,undefined)}
-        ${commit(4,0,'e5f6','#3fb950',pt(4,0).x-52+164,undefined)}
-        ${svgWrap(0,0,'').slice(0,-6)}
-        <circle cx="${164+24+UNIT*2}" cy="26" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
-        <text x="${164+24+UNIT*2}" y="30" text-anchor="middle" fill="#e6edf3" font-size="8" font-weight="600">a1b2</text>
-        <circle cx="${164+24+UNIT*3}" cy="26" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
-        <text x="${164+24+UNIT*3}" y="30" text-anchor="middle" fill="#e6edf3" font-size="8" font-weight="600">c3d4</text>
-        <circle cx="${164+24+UNIT*4}" cy="26" r="${R}" fill="#3fb950" stroke="#6e7681" stroke-width="1.5"/>
-        <text x="${164+24+UNIT*4}" y="30" text-anchor="middle" fill="#e6edf3" font-size="8" font-weight="600">e5f6</text>
-        <line x1="${164+24+UNIT*0+R+1}" y1="26" x2="${164+24+UNIT*1-R-3}" y2="26" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
-        <line x1="${164+24+UNIT*1+R+1}" y1="26" x2="${164+24+UNIT*2-R-3}" y2="26" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
-        <line x1="${164+24+UNIT*2+R+1}" y1="26" x2="${164+24+UNIT*3-R-3}" y2="26" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
-        <line x1="${164+24+UNIT*3+R+1}" y1="26" x2="${164+24+UNIT*4-R-3}" y2="26" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
-        ${sLabel(164+24+UNIT*4-14,62,'feat: login','#8b949e')}
-        ${sLabel(164+24+UNIT*3-18,62,'main → new','#3fb950')}
-      `);
+    diag: function() {
+      var w = 340, h = 104;
+      var ox = 166;
+      return svgWrap(w, h,
+        T(8, 11, 'Before', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', 'commit a1b2')
+        + C(1, 1, 'c3d4', '#2d333b', 'commit c3d4 - tip of main')
+        + E(0, 1, 1, 1)
+        + L(1, 1, 'main', '#3fb950', 'branch main points here', -20)
+        + HD(1, 1, 'HEAD - you are on main', 20, 28)
+        + T(8, 92, 'login.js is staged in index', '#e3b341', 9)
+        + DIV(162, 104)
+        + T(ox + 8, 11, 'After', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', '', ox)
+        + C(1, 1, 'c3d4', '#2d333b', '', ox)
+        + C(2, 1, 'e5f6', '#3fb950', 'NEW commit e5f6 - feat: add login form', ox)
+        + E(0, 1, 1, 1, '#444c56', 'ah', ox)
+        + E(1, 1, 2, 1, '#3fb950', 'ahg', ox)
+        + L(2, 1, 'main', '#3fb950', 'main moved forward', -20, 0, ox)
+        + HD(2, 1, 'HEAD', 20, 28, ox)
+      );
     }
   },
   {
-    name:'git commit --amend',
-    tag:'COMMIT', tagColor:'color-green',
-    desc:'Replace the most recent commit with a new one. Use to fix the message, add forgotten files, or tweak changes. Never amend pushed commits.',
-    examples:[
-      { code:'git add forgotten.js && git commit --amend --no-edit', note:'Add file to last commit silently' },
-      { code:'git commit --amend -m "fix: corrected message"', note:'Change last commit message' },
-      { code:'git commit --amend --reset-author', note:'Fix author info on last commit' },
+    name:'git commit --amend', id:'amend',
+    tag:'COMMIT', tc:'tg',
+    desc:'Replace the most recent commit with a new one. Use to fix the message or add a forgotten file. Never amend commits already pushed to a shared branch.',
+    ex:[
+      {c:'git add missed.js && git commit --amend --no-edit', n:'Add forgotten file silently'},
+      {c:'git commit --amend -m "fix: corrected message"', n:'Rewrite last commit message'},
+      {c:'git commit --amend --reset-author', n:'Update author to current git config'}
     ],
-    diagram: () => {
-      const w=330, h=96;
-      const d = 160;
-      return svgWrap(w,h,`
-        ${sLabel(8,14,'Before','#8b949e')}
-        ${commit(0,0,'a1b2','#444c56')}${commit(1,0,'c3d4','#444c56')}${commit(2,0,'e5f6','#f85149')}
-        ${edge(0,0,1,0)}${edge(1,0,2,0)}
-        ${label(2,0,'main','#3fb950')}${head(2,0,22,24)}
-        ${sLabel(10,70,'e5f6 has wrong msg','#f85149')}
-        ${divider(d,96)}
-        ${sLabel(d+12,14,'After','#8b949e')}
-        <circle cx="${d+24}" cy="26" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
-        <text x="${d+24}" y="30" text-anchor="middle" fill="#e6edf3" font-size="8">a1b2</text>
-        <circle cx="${d+24+UNIT}" cy="26" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
-        <text x="${d+24+UNIT}" y="30" text-anchor="middle" fill="#e6edf3" font-size="8">c3d4</text>
-        <circle cx="${d+24+UNIT*2}" cy="26" r="${R}" fill="#3fb950" stroke="#3fb950" stroke-width="2"/>
-        <text x="${d+24+UNIT*2}" y="30" text-anchor="middle" fill="#fff" font-size="8">f7a8</text>
-        <line x1="${d+24+R+1}" y1="26" x2="${d+24+UNIT-R-3}" y2="26" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
-        <line x1="${d+24+UNIT+R+1}" y1="26" x2="${d+24+UNIT*2-R-3}" y2="26" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
-        ${sLabel(d+24+UNIT*2-22,62,'new hash','#3fb950')}
-        ${sLabel(d+24+UNIT*2-28,74,'(replaces e5f6)','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 104;
+      var ox = 166;
+      return svgWrap(w, h,
+        T(8, 11, 'Before', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', 'commit a1b2')
+        + C(1, 1, 'c3d4', '#2d333b', 'commit c3d4')
+        + C(2, 1, 'e5f6', '#f85149', 'commit e5f6 - has a typo in message')
+        + E(0, 1, 1, 1) + E(1, 1, 2, 1)
+        + L(2, 1, 'main', '#3fb950', '', -20)
+        + HD(2, 1, 'HEAD', 20, 28)
+        + T(8, 92, 'e5f6 has wrong message - will be replaced', '#f85149', 9)
+        + DIV(162, 104)
+        + T(ox + 8, 11, 'After', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', '', ox)
+        + C(1, 1, 'c3d4', '#2d333b', '', ox)
+        + C(2, 1, 'f7a8', '#3fb950', 'NEW commit f7a8 - completely replaces e5f6', ox)
+        + E(0, 1, 1, 1, '#444c56', 'ah', ox) + E(1, 1, 2, 1, '#444c56', 'ah', ox)
+        + L(2, 1, 'main', '#3fb950', 'points to new f7a8', -20, 0, ox)
+        + HD(2, 1, 'HEAD', 20, 28, ox)
+        + T(ox + 8, 92, 'e5f6 gone, new hash f7a8', '#3fb950', 9)
+      );
     }
   }
   ]
 },
 
 {
-  id:'branch', title:'Branching', color:'#bc8cff', bg:'bg-purple', icon:'🌿',
-  commands:[
+  id:'branch', title:'Branching', color:'#bc8cff', bg:'bgp', icon:'&#127807;',
+  cmds:[
   {
-    name:'git branch',
-    tag:'BRANCH', tagColor:'color-purple',
-    desc:'List, create, rename, or delete branches. A branch is just a lightweight pointer to a commit.',
-    examples:[
-      { code:'git branch', note:'List local branches (* = current)' },
-      { code:'git branch feature/login', note:'Create a new branch at HEAD' },
-      { code:'git branch -d feature/login', note:'Delete a merged branch' },
-      { code:'git branch -D feature/login', note:'Force-delete even if unmerged' },
-      { code:'git branch -m old-name new-name', note:'Rename current branch' },
+    name:'git branch', id:'branch',
+    tag:'BRANCH', tc:'tp',
+    desc:'List, create, rename, or delete branches. A branch is a lightweight pointer to a commit - creating one is instant.',
+    ex:[
+      {c:'git branch', n:'List local branches (* = current)'},
+      {c:'git branch -a', n:'List local and remote-tracking branches'},
+      {c:'git branch feature/login', n:'Create branch at current HEAD'},
+      {c:'git branch -d feature/login', n:'Delete a merged branch'},
+      {c:'git branch -D feature/login', n:'Force-delete even if unmerged'}
     ],
-    diagram: () => {
-      const w=320, h=106;
-      return svgWrap(w,h,`
-        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#444c56')}
-        ${edge(0,1,1,1)}${edge(1,1,2,1)}
-        ${label(2,1,'main','#3fb950', -22)}${head(2,1,22,24)}
-        ${sLabel(8,94,'git branch feature/login  →  creates pointer at e5f6','#8b949e')}
-        ${commit(0,0,'a1b2','#444c56',undefined,undefined)}
-        ${sLabel(24,4,'','',0,0)}
-        <circle cx="${24+UNIT*2}" cy="${26+UNIT}" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
-        <text x="${24+UNIT*2}" y="${30+UNIT}" text-anchor="middle" fill="#e6edf3" font-size="8">e5f6</text>
-        ${label(2,1,'feature/login','#bc8cff',-22,0)}
-      `);
+    diag: function() {
+      var w = 340, h = 116;
+      var ox = 164;
+      return svgWrap(w, h,
+        T(8, 11, 'Before', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', 'commit a1b2')
+        + C(1, 1, 'c3d4', '#2d333b', 'commit c3d4')
+        + C(2, 1, 'e5f6', '#2d333b', 'commit e5f6 - tip of main')
+        + E(0, 1, 1, 1) + E(1, 1, 2, 1)
+        + L(2, 1, 'main', '#3fb950', 'main pointer', -20)
+        + HD(2, 1, 'HEAD - on main', 20, 28)
+        + T(8, 104, 'git branch feature/login', '#bc8cff', 9)
+        + DIV(160, 116)
+        + T(ox + 8, 11, 'After', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', '', ox)
+        + C(1, 1, 'c3d4', '#2d333b', '', ox)
+        + C(2, 1, 'e5f6', '#2d333b', 'Both branches point here - same commit', ox)
+        + E(0, 1, 1, 1, '#444c56', 'ah', ox) + E(1, 1, 2, 1, '#444c56', 'ah', ox)
+        + L(2, 1, 'main', '#3fb950', 'main pointer', 22, 0, ox)
+        + L(2, 1, 'feature/login', '#bc8cff', 'NEW - same commit, different pointer', -22, 0, ox)
+        + HD(2, 1, 'HEAD still on main', 44, 28, ox)
+      );
     }
   },
   {
-    name:'git switch',
-    tag:'BRANCH', tagColor:'color-purple',
+    name:'git switch', id:'switch',
+    tag:'BRANCH', tc:'tp',
     desc:'Move HEAD to another branch (modern replacement for git checkout). Use -c to create and switch in one step.',
-    examples:[
-      { code:'git switch main', note:'Switch to main branch' },
-      { code:'git switch -c feature/signup', note:'Create new branch and switch to it' },
-      { code:'git switch -', note:'Switch back to previous branch' },
-      { code:'git checkout feature/login', note:'Legacy equivalent (still works)' },
+    ex:[
+      {c:'git switch main', n:'Move to main branch'},
+      {c:'git switch -c feature/signup', n:'Create new branch and switch to it'},
+      {c:'git switch -', n:'Switch back to the previous branch'},
+      {c:'git checkout feature/login', n:'Legacy equivalent (still works)'}
     ],
-    diagram: () => {
-      const w=320, h=110;
-      return svgWrap(w,h,`
-        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#444c56')}
-        ${edge(0,1,1,1)}${edge(1,1,2,1)}
-        ${commit(2,0,'g7h8','#bc8cff')}
-        ${edge(1,1,2,0)}
-        ${label(2,1,'main','#3fb950',-22)}
-        ${label(2,0,'feature/login','#bc8cff',-22)}
-        ${head(2,1,22,24)}
-        ${sLabel(8,102,'git switch feature/login  →  HEAD moves up','#8b949e')}
-        ${head(2,0,-22,24)}
-      `);
+    diag: function() {
+      var w = 340, h = 120;
+      var ox = 164;
+      return svgWrap(w, h,
+        T(8, 11, 'Before', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', '')
+        + C(1, 1, 'c3d4', '#2d333b', '')
+        + C(2, 1, 'e5f6', '#2d333b', '')
+        + C(2, 0, 'g7h8', '#bc8cff', 'tip of feature/login')
+        + E(0, 1, 1, 1) + E(1, 1, 2, 1)
+        + EC(1, 1, 2, 0, '#bc8cff', 'ahp')
+        + L(2, 1, 'main', '#3fb950', '', -20)
+        + L(2, 0, 'feature/login', '#bc8cff', '', -20)
+        + HD(2, 1, 'HEAD is on main', 20, 28)
+        + T(8, 108, 'git switch feature/login', '#bc8cff', 9)
+        + DIV(160, 120)
+        + T(ox + 8, 11, 'After', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', '', ox)
+        + C(1, 1, 'c3d4', '#2d333b', '', ox)
+        + C(2, 1, 'e5f6', '#2d333b', '', ox)
+        + C(2, 0, 'g7h8', '#bc8cff', 'HEAD moved here - working tree reflects this commit', ox)
+        + E(0, 1, 1, 1, '#444c56', 'ah', ox) + E(1, 1, 2, 1, '#444c56', 'ah', ox)
+        + EC(1, 1, 2, 0, '#bc8cff', 'ahp', ox)
+        + L(2, 1, 'main', '#3fb950', '', 20, 0, ox)
+        + L(2, 0, 'feature/login', '#bc8cff', '', -20, 0, ox)
+        + HD(2, 0, 'HEAD moved to feature/login', 20, 28, ox)
+      );
     }
   },
   {
-    name:'git stash',
-    tag:'BRANCH', tagColor:'color-purple',
-    desc:'Temporarily shelve (stash) uncommitted changes so you can switch context, then re-apply them later.',
-    examples:[
-      { code:'git stash', note:'Stash working tree + index' },
-      { code:'git stash push -m "wip: login form"', note:'Stash with a descriptive name' },
-      { code:'git stash list', note:'Show all stashes' },
-      { code:'git stash pop', note:'Re-apply latest stash and drop it' },
-      { code:'git stash apply stash@{2}', note:'Re-apply a specific stash, keep it' },
+    name:'git stash', id:'stash',
+    tag:'BRANCH', tc:'tp',
+    desc:'Temporarily shelve uncommitted changes so you can switch context, then re-apply them later with pop or apply.',
+    ex:[
+      {c:'git stash', n:'Stash working tree and index'},
+      {c:'git stash push -m "wip: login form styles"', n:'Stash with a descriptive label'},
+      {c:'git stash list', n:'Show all stashes'},
+      {c:'git stash pop', n:'Re-apply latest stash and remove it'},
+      {c:'git stash apply stash@{2}', n:'Re-apply specific stash, keep it in list'}
     ],
-    diagram: () => {
-      const w=330, h=96;
-      return svgWrap(w,h,`
-        ${box(8,8,130,78,'#555','Working Tree (dirty)')}
-        ${sLabel(18,30,'login.js ●','#e3b341')}
-        ${sLabel(18,44,'auth.js  ●','#e3b341')}
-        ${sLabel(18,58,'unsaved WIP…','#8b949e')}
-        ${arrow(142,50,175,50,'#bc8cff')}
-        ${sLabel(144,46,'stash','#bc8cff')}
-        ${box(180,8,138,78,'#bc8cff','Stash stack')}
-        ${sLabel(190,28,'stash@{0} wip:login','#e6edf3')}
-        ${sLabel(190,42,'stash@{1} old work','#e6edf3')}
-        ${sLabel(190,64,'pop → restore + drop','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 100;
+      return svgWrap(w, h,
+        B(6, 6, 146, 86, '#4d5566', 'Working Tree (dirty)', 'Your uncommitted work in progress')
+        + T(18, 28, 'login.js  modified', '#e3b341', 9)
+        + T(18, 42, 'auth.js   modified', '#e3b341', 9)
+        + T(18, 56, '(uncommitted WIP)', '#8b949e', 8)
+        + T(18, 76, 'git stash  ->', '#bc8cff', 9, 700)
+        + A(156, 48, 190, 48, '#bc8cff', 'ahp')
+        + T(160, 42, 'stash', '#bc8cff', 9, 700)
+        + B(194, 6, 138, 86, '#bc8cff', 'Stash Stack', 'LIFO stack - stash@{0} is newest')
+        + T(204, 28, 'stash@{0}: wip: login', '#e6edf3', 8.5)
+        + T(204, 42, 'stash@{1}: old work', '#e6edf3', 8.5)
+        + T(204, 60, 'pop -> apply + drop', '#3fb950', 8.5)
+        + T(204, 74, 'apply -> keep in list', '#8b949e', 8.5)
+      );
     }
   }
   ]
 },
 
 {
-  id:'merge', title:'Merging & Rebasing', color:'#39c5cf', bg:'bg-cyan', icon:'🔀',
-  commands:[
+  id:'merge', title:'Merging & Rebasing', color:'#39c5cf', bg:'bgc', icon:'&#128256;',
+  cmds:[
   {
-    name:'git merge',
-    tag:'MERGE', tagColor:'color-cyan',
-    desc:'Join two branches. Fast-forward (no divergence) moves the pointer; three-way creates a merge commit. Use --no-ff to always create a merge commit.',
-    examples:[
-      { code:'git switch main && git merge feature/login', note:'Merge feature into main' },
-      { code:'git merge --no-ff feature/login -m "Merge feature/login"', note:'Always create merge commit' },
-      { code:'git merge --squash feature/login', note:'Squash all commits into one staged diff' },
-      { code:'git merge --abort', note:'Abort an in-progress conflicted merge' },
+    name:'git merge', id:'merge',
+    tag:'MERGE', tc:'tc',
+    desc:'Integrate two branches. Fast-forward just moves the pointer; three-way creates a merge commit preserving both histories.',
+    ex:[
+      {c:'git switch main && git merge feature/login', n:'Merge feature into main'},
+      {c:'git merge --no-ff feature/login', n:'Force a merge commit even if FF is possible'},
+      {c:'git merge --squash feature/login', n:'Collapse all feature commits into one staged diff'},
+      {c:'git merge --abort', n:'Cancel an in-progress conflicted merge'}
     ],
-    diagram: () => {
-      const w=340, h=116;
-      return svgWrap(w,h,`
-        ${sLabel(8,10,'Fast-forward','#8b949e')}
-        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}
-        ${commit(2,0,'e5f6','#39c5cf')}${commit(3,0,'g7h8','#39c5cf')}
-        ${edge(0,1,1,1)}${edge(1,1,2,0)}${edge(2,0,3,0)}
-        ${label(1,1,'main','#3fb950',-22)}
-        ${label(3,0,'feature/login','#39c5cf',-22)}
-        ${sLabel(8,96,'After: main','#3fb950')}${sLabel(50,96,'→ g7h8 (pointer moved)','#8b949e')}
-        ${divider(178,116)}
-        ${sLabel(190,10,'3-way merge','#8b949e')}
-        ${commit(3,2,'a1b2','#444c56',190+24,undefined)}
-        ${commit(4,2,'c3d4','#444c56',190+24,undefined)}
-        ${commit(4,1,'e5f6','#39c5cf',190+24,undefined)}
-        ${commit(5,1,'M','#3fb950',190+24,undefined)}
-        <circle cx="${190+24}" cy="${26+UNIT*2}" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
-        <text x="${190+24}" y="${30+UNIT*2}" text-anchor="middle" fill="#e6edf3" font-size="8">a1b2</text>
-        <circle cx="${190+24+UNIT}" cy="${26+UNIT*2}" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
-        <text x="${190+24+UNIT}" y="${30+UNIT*2}" text-anchor="middle" fill="#e6edf3" font-size="8">c3d4</text>
-        <circle cx="${190+24+UNIT}" cy="${26+UNIT}" r="${R}" fill="#39c5cf" stroke="#6e7681" stroke-width="1.5"/>
-        <text x="${190+24+UNIT}" y="${30+UNIT}" text-anchor="middle" fill="#e6edf3" font-size="8">e5f6</text>
-        <circle cx="${190+24+UNIT*2}" cy="${26+UNIT}" r="${R}" fill="#3fb950" stroke="#3fb950" stroke-width="2"/>
-        <text x="${190+24+UNIT*2}" y="${30+UNIT}" text-anchor="middle" fill="#fff" font-size="8">M</text>
-        <line x1="${190+24+R+1}" y1="${26+UNIT*2}" x2="${190+24+UNIT-R-3}" y2="${26+UNIT*2}" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
-        <line x1="${190+24+UNIT+R+1}" y1="${26+UNIT*2}" x2="${190+24+UNIT*2-R-3}" y2="${26+UNIT}" stroke="#3fb950" stroke-width="2" marker-end="url(#arr-g)"/>
-        <line x1="${190+24+UNIT+R+1}" y1="${26+UNIT}" x2="${190+24+UNIT*2-R-3}" y2="${26+UNIT}" stroke="#39c5cf" stroke-width="2" marker-end="url(#arr-g)"/>
-        ${sLabel(190+24+UNIT*2-6,112,'M','#3fb950')}
-      `);
+    diag: function() {
+      var w = 340, h = 128;
+      return svgWrap(w, h,
+        T(8, 11, 'Fast-forward merge', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', '')
+        + C(1, 1, 'c3d4', '#2d333b', '')
+        + C(2, 0, 'e5f6', '#39c5cf', 'commit on feature/login')
+        + C(3, 0, 'g7h8', '#39c5cf', 'tip of feature/login')
+        + E(0, 1, 1, 1)
+        + EC(1, 1, 2, 0, '#39c5cf', 'ahc')
+        + E(2, 0, 3, 0, '#39c5cf', 'ahc')
+        + L(1, 1, 'main', '#3fb950', 'main is behind - no divergence', -20)
+        + L(3, 0, 'feature/login', '#39c5cf', '', -20)
+        + T(8, 116, 'FF: main pointer moves to g7h8 - no new commit needed', '#8b949e', 8.5)
+        + T(192, 11, '3-way merge', '#8b949e', 9, 600)
+        + C(2, 1, 'a1b2', '#2d333b', 'shared base commit', 80)
+        + C(3, 1, 'c3d4', '#2d333b', 'main has new commit', 80)
+        + C(3, 0, 'e5f6', '#39c5cf', 'feature has new commit', 80)
+        + C(4, 0, 'M', '#3fb950', 'merge commit M - has two parents', 80)
+        + E(2, 1, 3, 1, '#444c56', 'ah', 80)
+        + EC(2, 1, 3, 0, '#39c5cf', 'ahc', 80)
+        + E(3, 1, 4, 0, '#3fb950', 'ahg', 80)
+        + E(3, 0, 4, 0, '#39c5cf', 'ahc', 80)
+        + L(3, 1, 'main', '#3fb950', '', 22, 0, 80)
+        + L(4, 0, 'M', '#3fb950', 'merge commit with two parents', -20, 0, 80)
+      );
     }
   },
   {
-    name:'git rebase',
-    tag:'MERGE', tagColor:'color-cyan',
-    desc:'Re-apply commits from one branch on top of another, producing a linear history. Interactive rebase (-i) lets you squash, reorder, or edit commits.',
-    examples:[
-      { code:'git switch feature/login && git rebase main', note:'Replay feature commits onto main tip' },
-      { code:'git rebase -i HEAD~3', note:'Interactive: edit last 3 commits' },
-      { code:'git rebase --continue', note:'Continue after resolving a conflict' },
-      { code:'git rebase --abort', note:'Abandon rebase and restore original state' },
+    name:'git rebase', id:'rebase',
+    tag:'MERGE', tc:'tc',
+    desc:'Re-apply branch commits on top of another branch tip, producing a clean linear history. Interactive (-i) lets you squash, reorder, or edit commits.',
+    ex:[
+      {c:'git switch feature/login && git rebase main', n:'Replay feature commits on latest main'},
+      {c:'git rebase -i HEAD~3', n:'Interactive: edit, squash, or reorder last 3 commits'},
+      {c:'git rebase --continue', n:'Continue after resolving a conflict'},
+      {c:'git rebase --abort', n:'Cancel and restore original state'}
     ],
-    diagram: () => {
-      const w=340, h=116;
-      const d=170;
-      return svgWrap(w,h,`
-        ${sLabel(8,10,'Before','#8b949e')}
-        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#444c56')}
-        ${commit(1,0,'f1f2','#39c5cf')}${commit(2,0,'g3g4','#39c5cf')}
-        ${edge(0,1,1,1)}${edge(1,1,2,1)}${edge(1,1,1,0)}${edge(1,0,2,0)}
-        ${label(2,1,'main','#3fb950',-22)}
-        ${label(2,0,'feature/login','#39c5cf',-22)}
-        ${divider(d,116)}
-        ${sLabel(d+10,10,'After rebase','#8b949e')}
-        <circle cx="${d+24}" cy="${26+UNIT}" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
-        <text x="${d+24}" y="${30+UNIT}" text-anchor="middle" fill="#e6edf3" font-size="8">a1b2</text>
-        <circle cx="${d+24+UNIT}" cy="${26+UNIT}" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
-        <text x="${d+24+UNIT}" y="${30+UNIT}" text-anchor="middle" fill="#e6edf3" font-size="8">c3d4</text>
-        <circle cx="${d+24+UNIT*2}" cy="${26+UNIT}" r="${R}" fill="#444c56" stroke="#6e7681" stroke-width="1.5"/>
-        <text x="${d+24+UNIT*2}" y="${30+UNIT}" text-anchor="middle" fill="#e6edf3" font-size="8">e5f6</text>
-        <circle cx="${d+24+UNIT*3}" cy="${26+UNIT}" r="${R}" fill="#39c5cf" stroke="#39c5cf" stroke-width="2"/>
-        <text x="${d+24+UNIT*3}" y="${30+UNIT}" text-anchor="middle" fill="#fff" font-size="8">f1'</text>
-        <circle cx="${d+24+UNIT*4}" cy="${26+UNIT}" r="${R}" fill="#39c5cf" stroke="#39c5cf" stroke-width="2"/>
-        <text x="${d+24+UNIT*4}" y="${30+UNIT}" text-anchor="middle" fill="#fff" font-size="8">g3'</text>
-        <line x1="${d+24+R+1}" y1="${26+UNIT}" x2="${d+24+UNIT-R-3}" y2="${26+UNIT}" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
-        <line x1="${d+24+UNIT+R+1}" y1="${26+UNIT}" x2="${d+24+UNIT*2-R-3}" y2="${26+UNIT}" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
-        <line x1="${d+24+UNIT*2+R+1}" y1="${26+UNIT}" x2="${d+24+UNIT*3-R-3}" y2="${26+UNIT}" stroke="#444c56" stroke-width="2" marker-end="url(#arr)"/>
-        <line x1="${d+24+UNIT*3+R+1}" y1="${26+UNIT}" x2="${d+24+UNIT*4-R-3}" y2="${26+UNIT}" stroke="#39c5cf" stroke-width="2" marker-end="url(#arr-b)"/>
-        ${sLabel(d+24+UNIT*2-6,10,'main','#3fb950')}
-        ${sLabel(d+24+UNIT*4-12,10,'feature','#39c5cf')}
-        <line x1="${d+24+UNIT*2}" y1="18" x2="${d+24+UNIT*2}" y2="${26+UNIT-R-2}" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="3,2"/>
-        <line x1="${d+24+UNIT*4}" y1="18" x2="${d+24+UNIT*4}" y2="${26+UNIT-R-2}" stroke="#39c5cf" stroke-width="1.5" stroke-dasharray="3,2"/>
-        ${sLabel(d+10,108,'new hashes — linear history','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 126;
+      var ox = 168;
+      return svgWrap(w, h,
+        T(8, 11, 'Before', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', 'shared base')
+        + C(1, 1, 'c3d4', '#2d333b', 'new commit on main')
+        + C(2, 1, 'e5f6', '#2d333b', 'another on main')
+        + C(1, 0, 'f1f2', '#39c5cf', 'first commit on feature/login')
+        + C(2, 0, 'g3g4', '#39c5cf', 'second commit on feature/login')
+        + E(0, 1, 1, 1) + E(1, 1, 2, 1)
+        + EC(0, 1, 1, 0, '#39c5cf', 'ahc')
+        + E(1, 0, 2, 0, '#39c5cf', 'ahc')
+        + L(2, 1, 'main', '#3fb950', '', -20)
+        + L(2, 0, 'feature/login', '#39c5cf', '', -20)
+        + T(8, 114, 'Commits f1f2 and g3g4 get new hashes: f1f2\' and g3g4\'', '#8b949e', 8.5)
+        + DIV(164, 126)
+        + T(ox + 8, 11, 'After rebase', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', '', ox)
+        + C(1, 1, 'c3d4', '#2d333b', '', ox)
+        + C(2, 1, 'e5f6', '#2d333b', '', ox)
+        + C(3, 1, "f1'", '#39c5cf', 'f1f2 replayed on top of e5f6 - new hash', ox)
+        + C(4, 1, "g3'", '#39c5cf', 'g3g4 replayed - new hash', ox)
+        + E(0, 1, 1, 1, '#444c56', 'ah', ox) + E(1, 1, 2, 1, '#444c56', 'ah', ox)
+        + E(2, 1, 3, 1, '#39c5cf', 'ahc', ox) + E(3, 1, 4, 1, '#39c5cf', 'ahc', ox)
+        + L(2, 1, 'main', '#3fb950', '', 20, 0, ox)
+        + L(4, 1, 'feature/login', '#39c5cf', '', -20, 0, ox)
+      );
     }
   },
   {
-    name:'git cherry-pick',
-    tag:'MERGE', tagColor:'color-cyan',
-    desc:'Copy a specific commit (or range) onto the current branch by re-applying its diff as a new commit.',
-    examples:[
-      { code:'git cherry-pick a1b2c3d', note:'Apply one commit to current branch' },
-      { code:'git cherry-pick a1b2c3d..e5f6g7h', note:'Apply a range of commits' },
-      { code:'git cherry-pick -n a1b2c3d', note:'Apply changes but do not commit yet' },
-      { code:'git cherry-pick --abort', note:'Cancel if conflicts occur' },
+    name:'git cherry-pick', id:'cherry',
+    tag:'MERGE', tc:'tc',
+    desc:'Copy a specific commit onto the current branch by re-applying its diff as a brand new commit with a new hash.',
+    ex:[
+      {c:'git cherry-pick a1b2c3d', n:'Apply one commit to current branch'},
+      {c:'git cherry-pick a1b2c3d..e5f6g7h', n:'Apply a range of commits'},
+      {c:'git cherry-pick -n a1b2c3d', n:'Stage the change but do not commit yet'},
+      {c:'git cherry-pick --abort', n:'Abort if conflicts occur'}
     ],
-    diagram: () => {
-      const w=340, h=116;
-      return svgWrap(w,h,`
-        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#444c56')}
-        ${commit(1,0,'★','#39c5cf')}${commit(2,0,'f7g8','#444c56')}
-        ${edge(0,1,1,1)}${edge(1,1,2,1)}${edge(1,1,1,0)}${edge(1,0,2,0)}
-        ${label(2,1,'main','#3fb950',-22)}${head(2,1,22,24)}
-        ${label(2,0,'feature/login','#39c5cf',-22)}
-        ${sLabel(24+UNIT,-6,'← pick this','#39c5cf')}
-        ${sLabel(8,104,'After: cherry-pick ★ → new commit on main','#8b949e')}
-        ${commit(3,1,'★\'','#39c5cf')}
-        ${edge(2,1,3,1)}
-        ${label(3,1,'main','#3fb950',-22)}${head(3,1,22,24)}
-        ${sLabel(24+UNIT*3,56,'copy','#39c5cf')}
-        <path d="M${24+UNIT+13} ${26} C${24+UNIT+40} ${26+UNIT*0.2} ${24+UNIT*3-40} ${26} ${24+UNIT*3-13} ${26}" fill="none" stroke="#39c5cf" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr-b)"/>
-      `);
+    diag: function() {
+      var w = 340, h = 128;
+      return svgWrap(w, h,
+        C(0, 1, 'a1b2', '#2d333b', '')
+        + C(1, 1, 'c3d4', '#2d333b', '')
+        + C(2, 1, 'e5f6', '#2d333b', '')
+        + C(1, 0, 'F', '#39c5cf', 'This commit on feature/login - we want to copy it to main')
+        + C(2, 0, 'g7h8', '#2d333b', '')
+        + E(0, 1, 1, 1) + E(1, 1, 2, 1)
+        + EC(1, 1, 1, 0, '#39c5cf', 'ahc') + E(1, 0, 2, 0)
+        + L(2, 1, 'main', '#3fb950', '', -20)
+        + HD(2, 1, 'HEAD on main', 20, 28)
+        + L(2, 0, 'feature/login', '#39c5cf', '', -20)
+        + T(8, 116, 'cherry-pick F  ->  copies its diff onto main as a new commit F\'', '#8b949e', 8.5)
+        + C(3, 1, "F'", '#39c5cf', 'Cherry-picked copy - same diff, new hash')
+        + E(2, 1, 3, 1, '#39c5cf', 'ahc')
+        + L(3, 1, 'main', '#3fb950', '', -20)
+        + HD(3, 1, 'HEAD', 20, 28)
+        + '<path d="M' + (26 + U) + ' ' + 26 + ' C' + (26 + U + 50) + ' 0 ' + (26 + U * 3 - 50) + ' 0 ' + (26 + U * 3 - R - 4) + ' ' + 26 + '" fill="none" stroke="#39c5cf" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ahc)"/>'
+        + T(26 + U + 30, 6, 'copy', '#39c5cf', 8, 700)
+      );
     }
   }
   ]
 },
 
 {
-  id:'remote', title:'Remote Repositories', color:'#58a6ff', bg:'bg-blue', icon:'☁️',
-  commands:[
+  id:'remote', title:'Remote Repositories', color:'#58a6ff', bg:'bgb', icon:'&#9729;',
+  cmds:[
   {
-    name:'git remote',
-    tag:'REMOTE', tagColor:'color-blue',
-    desc:'Manage the set of remote repositories whose branches you track. "origin" is the conventional name for your primary remote.',
-    examples:[
-      { code:'git remote -v', note:'List remotes with their URLs' },
-      { code:'git remote add origin git@github.com:org/repo.git', note:'Add a remote named "origin"' },
-      { code:'git remote rename origin upstream', note:'Rename a remote' },
-      { code:'git remote remove upstream', note:'Remove a remote' },
+    name:'git remote', id:'remote',
+    tag:'REMOTE', tc:'tb',
+    desc:'Manage the set of remotes your local repo knows about. "origin" is the conventional primary remote name.',
+    ex:[
+      {c:'git remote -v', n:'List remotes with their fetch/push URLs'},
+      {c:'git remote add origin git@github.com:org/repo.git', n:'Add remote named "origin"'},
+      {c:'git remote rename origin upstream', n:'Rename a remote'},
+      {c:'git remote remove upstream', n:'Remove a remote entirely'}
     ],
-    diagram: () => {
-      const w=320, h=86;
-      return svgWrap(w,h,`
-        ${box(8,10,130,66,'#444c56','Local repo')}
-        ${sLabel(18,32,'remote: origin','#58a6ff')}
-        ${sLabel(18,46,'  → github.com/org/repo','#8b949e')}
-        ${sLabel(18,60,'remote: upstream','#bc8cff')}
-        ${arrow(142,42,178,42,'#555')}
-        ${box(182,10,128,66,'#58a6ff','GitHub')}
-        ${sLabel(192,32,'org/repo (origin)','#e6edf3')}
-        ${sLabel(192,48,'forked-org/repo','#e6edf3')}
-      `);
+    diag: function() {
+      var w = 340, h = 90;
+      return svgWrap(w, h,
+        B(6, 6, 144, 76, '#4d5566', 'Local repo', 'Your machine - .git/config lists remotes')
+        + T(16, 28, 'remote: origin', '#58a6ff', 9)
+        + T(16, 40, ' -> github.com/org/repo', '#8b949e', 8)
+        + T(16, 54, 'remote: upstream', '#bc8cff', 9)
+        + T(16, 66, ' -> github.com/upstream/repo', '#8b949e', 8)
+        + A(154, 44, 186, 44, '#4d5566', 'ah')
+        + B(190, 6, 142, 76, '#58a6ff', 'GitHub', 'Remote server hosting the repo')
+        + T(200, 30, 'org/repo  (origin)', '#e6edf3', 9)
+        + T(200, 46, 'upstream/repo (fork)', '#e6edf3', 9)
+        + T(200, 62, 'git@github.com:...', '#8b949e', 8)
+      );
     }
   },
   {
-    name:'git fetch',
-    tag:'REMOTE', tagColor:'color-blue',
-    desc:'Download remote commits, branches, and tags without merging them. Updates remote-tracking refs (e.g. origin/main) but leaves your local branches untouched.',
-    examples:[
-      { code:'git fetch origin', note:'Fetch all branches from origin' },
-      { code:'git fetch origin main', note:'Fetch only the main branch' },
-      { code:'git fetch --all', note:'Fetch from every configured remote' },
-      { code:'git fetch --prune', note:'Delete stale remote-tracking refs' },
+    name:'git fetch', id:'fetch',
+    tag:'REMOTE', tc:'tb',
+    desc:'Download new commits, branches, and tags from remote without merging. Updates remote-tracking refs (origin/main etc.) only.',
+    ex:[
+      {c:'git fetch origin', n:'Fetch everything from origin'},
+      {c:'git fetch origin main', n:'Fetch only the main branch'},
+      {c:'git fetch --all', n:'Fetch from every configured remote'},
+      {c:'git fetch --prune', n:'Delete stale remote-tracking refs'}
     ],
-    diagram: () => {
-      const w=340, h=100;
-      return svgWrap(w,h,`
-        ${box(8,8,100,82,'#58a6ff','origin')}
-        ${sLabel(18,28,'a1b2','#e6edf3')}${sLabel(18,40,'c3d4','#e6edf3')}${sLabel(18,52,'e5f6','#e6edf3')}${sLabel(18,64,'NEW','#3fb950')}
-        ${arrow(112,48,165,48,'#58a6ff')}
-        ${sLabel(120,44,'fetch','#58a6ff')}
-        ${box(170,8,160,82,'#444c56','Local')}
-        ${sLabel(180,28,'main (unchanged)','#8b949e')}
-        ${sLabel(180,44,'origin/main ← new','#58a6ff')}
-        ${sLabel(180,60,'a1b2→c3d4→e5f6→NEW','#8b949e')}
-        ${sLabel(180,76,'you review before merge','#555')}
-      `);
+    diag: function() {
+      var w = 340, h = 100;
+      return svgWrap(w, h,
+        B(6, 6, 116, 86, '#58a6ff', 'origin (remote)', 'Server side - has commits you do not have')
+        + T(16, 28, 'a1b2', '#e6edf3', 9) + T(16, 42, 'c3d4', '#e6edf3', 9)
+        + T(16, 56, 'e5f6', '#e6edf3', 9)
+        + T(16, 70, 'g7h8  <- NEW', '#3fb950', 9, 700)
+        + A(126, 50, 165, 50, '#58a6ff', 'ahb')
+        + T(130, 44, 'fetch', '#58a6ff', 9, 700)
+        + B(170, 6, 162, 86, '#4d5566', 'Local', 'Your local repo after fetch')
+        + T(180, 28, 'main (unchanged)', '#8b949e', 9)
+        + T(180, 42, 'origin/main  <- updated', '#58a6ff', 9, 700)
+        + T(180, 56, 'a1b2->c3d4->e5f6->g7h8', '#8b949e', 8)
+        + T(180, 70, 'review, then merge', '#4d5566', 8)
+        + T(180, 84, 'your branch untouched', '#8b949e', 8)
+      );
     }
   },
   {
-    name:'git pull',
-    tag:'REMOTE', tagColor:'color-blue',
-    desc:'Fetch from the remote and immediately merge (or rebase with --rebase) into the current branch. Shorthand for git fetch + git merge.',
-    examples:[
-      { code:'git pull origin main', note:'Fetch + merge main from origin' },
-      { code:'git pull --rebase origin main', note:'Fetch + rebase instead of merge' },
-      { code:'git pull --ff-only', note:'Only allow fast-forward (safe, no merge commits)' },
+    name:'git pull', id:'pull',
+    tag:'REMOTE', tc:'tb',
+    desc:'Fetch from remote then immediately merge (or rebase with --rebase) into the current branch. Shorthand for git fetch + git merge.',
+    ex:[
+      {c:'git pull origin main', n:'Fetch + merge main from origin'},
+      {c:'git pull --rebase origin main', n:'Fetch + rebase (cleaner linear history)'},
+      {c:'git pull --ff-only', n:'Only allow fast-forward (fails if diverged)'}
     ],
-    diagram: () => {
-      const w=340, h=100;
-      return svgWrap(w,h,`
-        ${box(8,8,100,82,'#58a6ff','origin/main')}
-        ${sLabel(18,46,'e5f6 (new)','#e6edf3')}
-        ${arrow(112,48,155,30,'#58a6ff')}
-        ${arrow(112,48,155,68,'#58a6ff')}
-        ${sLabel(120,30,'fetch','#58a6ff')}
-        ${sLabel(120,64,'merge','#3fb950')}
-        ${box(160,8,80,40,'#444c56','origin/main')}
-        ${sLabel(170,32,'updated','#8b949e')}
-        ${box(160,54,80,40,'#3fb950','local main')}
-        ${sLabel(168,78,'merged','#e6edf3')}
-        ${sLabel(8,96,'pull = fetch + merge (or rebase)','#555')}
-      `);
+    diag: function() {
+      var w = 340, h = 100;
+      return svgWrap(w, h,
+        B(6, 6, 116, 86, '#58a6ff', 'origin/main', 'Remote has commits you do not have')
+        + T(18, 46, 'g7h8 (new commit)', '#e6edf3', 9)
+        + A(126, 32, 164, 20, '#58a6ff', 'ahb')
+        + A(126, 66, 164, 78, '#3fb950', 'ahg')
+        + T(130, 26, '1. fetch', '#58a6ff', 9, 700)
+        + T(130, 62, '2. merge', '#3fb950', 9, 700)
+        + B(168, 6, 80, 38, '#4d5566', 'origin/main', 'Remote-tracking ref updated')
+        + T(180, 30, 'updated', '#8b949e', 8)
+        + B(168, 54, 80, 38, '#3fb950', 'local main', 'Your branch now has g7h8')
+        + T(176, 76, 'merged', '#e6edf3', 9, 700)
+        + T(6, 96, 'pull = fetch + merge  |  pull --rebase = fetch + rebase', '#555', 8.5)
+      );
     }
   },
   {
-    name:'git push',
-    tag:'REMOTE', tagColor:'color-blue',
-    desc:'Upload local commits to a remote repository. Use -u to set the upstream tracking reference so future pushes need no arguments.',
-    examples:[
-      { code:'git push origin main', note:'Push local main to origin' },
-      { code:'git push -u origin feature/login', note:'Push and set upstream tracking' },
-      { code:'git push --force-with-lease', note:'Safe force push (fails if remote changed)' },
-      { code:'git push origin --delete feature/login', note:'Delete a remote branch' },
-      { code:'git push --tags', note:'Push all local tags to remote' },
+    name:'git push', id:'push',
+    tag:'REMOTE', tc:'tb',
+    desc:'Upload local commits to a remote. Use -u once to set the upstream tracking so future pushes need no arguments.',
+    ex:[
+      {c:'git push origin main', n:'Push local main to origin'},
+      {c:'git push -u origin feature/login', n:'Push and set upstream tracking reference'},
+      {c:'git push --force-with-lease', n:'Safe force push - fails if remote was changed by others'},
+      {c:'git push origin --delete feature/login', n:'Delete a remote branch'},
+      {c:'git push --tags', n:'Push all local tags to remote'}
     ],
-    diagram: () => {
-      const w=340, h=100;
-      return svgWrap(w,h,`
-        ${box(8,12,140,76,'#444c56','Local')}
-        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'e5f6','#3fb950')}
-        ${edge(0,1,1,1)}
-        ${label(1,1,'main','#3fb950',-22)}${head(1,1,22,24)}
-        ${arrow(154,52,195,52,'#58a6ff')}
-        ${sLabel(158,48,'push','#58a6ff')}
-        ${box(200,12,130,76,'#58a6ff','origin')}
-        ${sLabel(210,38,'a1b2 → e5f6','#e6edf3')}
-        ${sLabel(210,56,'main updated','#e6edf3')}
-        ${sLabel(210,70,'origin/main ✓','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 102;
+      return svgWrap(w, h,
+        B(6, 6, 150, 88, '#4d5566', 'Local repo', 'Your machine with new commits to share')
+        + C(0, 1, 'a1b2', '#2d333b', '')
+        + C(1, 1, 'e5f6', '#3fb950', 'new commit to push')
+        + E(0, 1, 1, 1, '#3fb950', 'ahg')
+        + L(1, 1, 'main', '#3fb950', '', -20)
+        + HD(1, 1, 'HEAD', 20, 28)
+        + A(160, 50, 196, 50, '#58a6ff', 'ahb')
+        + T(164, 44, 'push', '#58a6ff', 9, 700)
+        + B(200, 6, 132, 88, '#58a6ff', 'origin (GitHub)', 'Remote updated with your commits')
+        + T(210, 34, 'a1b2 -> e5f6', '#e6edf3', 9)
+        + T(210, 50, 'main updated', '#e6edf3', 9, 700)
+        + T(210, 66, 'origin/main synced', '#8b949e', 8)
+        + T(210, 80, '-u sets upstream', '#8b949e', 8)
+      );
     }
   }
   ]
 },
 
 {
-  id:'undo', title:'Undoing Changes', color:'#f85149', bg:'bg-red', icon:'↩️',
-  commands:[
+  id:'undo', title:'Undoing Changes', color:'#f85149', bg:'bgr', icon:'&#8617;',
+  cmds:[
   {
-    name:'git restore',
-    tag:'UNDO', tagColor:'color-red',
-    desc:'Restore working tree files from the index or a commit. The safe way to discard local changes without touching history.',
-    examples:[
-      { code:'git restore auth.js', note:'Discard unstaged changes in auth.js' },
-      { code:'git restore --staged auth.js', note:'Un-stage auth.js (keep working tree)' },
-      { code:'git restore --source HEAD~2 auth.js', note:'Restore auth.js from 2 commits ago' },
+    name:'git restore', id:'restore',
+    tag:'UNDO', tc:'tr',
+    desc:'Discard working tree changes or un-stage files. The safe modern replacement for the confusing parts of git checkout.',
+    ex:[
+      {c:'git restore auth.js', n:'Discard unstaged edits in auth.js'},
+      {c:'git restore --staged auth.js', n:'Un-stage auth.js (keep working tree changes)'},
+      {c:'git restore --source HEAD~2 auth.js', n:'Restore auth.js from 2 commits ago'},
+      {c:'git restore .', n:'Discard ALL unstaged changes (careful!)'}
     ],
-    diagram: () => {
-      const w=320, h=94;
-      return svgWrap(w,h,`
-        ${box(8,8,88,78,'#58a6ff','HEAD commit')}
-        ${sLabel(18,42,'auth.js v1','#e6edf3')}
-        ${box(104,8,90,36,'#e3b341','Staged')}
-        ${sLabel(114,30,'auth.js v2','#e6edf3')}
-        ${box(104,52,90,34,'#f85149','Working tree')}
-        ${sLabel(114,72,'auth.js v3','#e6edf3')}
-        ${sLabel(200,18,'←restore --staged','#e3b341')}
-        ${sLabel(200,62,'←restore','#f85149')}
-        ${arrow(200,26,104+90,26,'#e3b341')}
-        ${arrow(200,70,104+90,70,'#f85149')}
-      `);
+    diag: function() {
+      var w = 340, h = 100;
+      return svgWrap(w, h,
+        B(6, 6, 90, 86, '#58a6ff', 'HEAD commit', 'Last committed version of each file')
+        + T(16, 44, 'auth.js v1', '#e6edf3', 9)
+        + T(16, 58, '(committed)', '#4d5566', 8)
+        + B(104, 6, 108, 40, '#e3b341', 'Staged (index)', 'Currently staged version')
+        + T(116, 30, 'auth.js v2', '#e6edf3', 9)
+        + B(104, 54, 108, 38, '#f85149', 'Working Tree', 'File on disk right now')
+        + T(116, 76, 'auth.js v3', '#e6edf3', 9)
+        + A(214, 26, 270, 26, '#e3b341', 'ah')
+        + T(220, 20, 'restore --staged', '#e3b341', 8, 600)
+        + T(220, 32, '(un-stages v2)', '#8b949e', 8)
+        + A(214, 74, 270, 74, '#f85149', 'ahr')
+        + T(220, 68, 'restore (no flag)', '#f85149', 8, 600)
+        + T(220, 80, '(discards v3)', '#8b949e', 8)
+        + B(272, 6, 60, 86, '#4d5566', 'Result', 'File reverts to v1')
+        + T(290, 48, 'v1', '#e6edf3', 12, 700)
+        + T(286, 60, 'restored', '#3fb950', 8, 600)
+      );
     }
   },
   {
-    name:'git reset',
-    tag:'UNDO', tagColor:'color-red',
-    desc:'Move HEAD (and the branch pointer) to a specified commit. Three modes control what happens to the index and working tree.',
-    examples:[
-      { code:'git reset --soft HEAD~1', note:'Undo last commit — keep changes staged' },
-      { code:'git reset --mixed HEAD~1', note:'Undo last commit — keep changes unstaged (default)' },
-      { code:'git reset --hard HEAD~1', note:'Undo last commit — DISCARD all changes' },
-      { code:'git reset HEAD auth.js', note:'Un-stage a specific file' },
+    name:'git reset', id:'reset',
+    tag:'UNDO', tc:'tr',
+    desc:'Move HEAD and the current branch to a different commit. Three modes control what happens to the index and working tree.',
+    ex:[
+      {c:'git reset --soft HEAD~1', n:'Undo last commit - keep changes staged'},
+      {c:'git reset --mixed HEAD~1', n:'Undo last commit - keep changes unstaged (default)'},
+      {c:'git reset --hard HEAD~1', n:'Undo last commit - DISCARD all changes permanently'},
+      {c:'git reset HEAD auth.js', n:'Un-stage auth.js only'}
     ],
-    diagram: () => {
-      const w=340, h=116;
-      return svgWrap(w,h,`
-        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#f85149')}
-        ${edge(0,1,1,1)}${edge(1,1,2,1)}
-        ${label(2,1,'main','#3fb950',-22)}${head(2,1,22,24)}
-        ${sLabel(8,100,'git reset HEAD~1  →  HEAD+main move to c3d4','#8b949e')}
-        ${commit(0,0,'a1b2','#444c56')}${commit(1,0,'c3d4','#3fb950')}
-        ${edge(0,0,1,0)}
-        ${label(1,0,'main','#3fb950',-22)}${head(1,0,22,24)}
-        ${sLabel(24+UNIT*2,58,'e5f6 still','#8b949e')}
-        ${sLabel(24+UNIT*2,70,'exists (for now)','#555')}
-        ${sLabel(8,82,'--soft: staged  |  --mixed: unstaged  |  --hard: gone','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 124;
+      var ox = 166;
+      return svgWrap(w, h,
+        T(8, 11, 'Before', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', '')
+        + C(1, 1, 'c3d4', '#2d333b', '')
+        + C(2, 1, 'e5f6', '#f85149', 'e5f6 - the commit we want to undo')
+        + E(0, 1, 1, 1) + E(1, 1, 2, 1)
+        + L(2, 1, 'main', '#3fb950', '', -20)
+        + HD(2, 1, 'HEAD on main', 20, 28)
+        + T(8, 88, '--soft   : changes remain staged', '#e3b341', 8.5, 600)
+        + T(8, 100, '--mixed  : changes remain, unstaged', '#8b949e', 8.5)
+        + T(8, 112, '--hard   : changes DELETED', '#f85149', 8.5, 600)
+        + DIV(162, 124)
+        + T(ox + 8, 11, 'After  git reset HEAD~1', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', '', ox)
+        + C(1, 1, 'c3d4', '#3fb950', 'HEAD and main moved here', ox)
+        + C(2, 1, 'e5f6', '#4d5566', 'still exists but unreachable', ox)
+        + E(0, 1, 1, 1, '#444c56', 'ah', ox) + E(1, 1, 2, 1, '#4d5566', 'ah', ox)
+        + L(1, 1, 'main', '#3fb950', '', 22, 0, ox)
+        + HD(1, 1, 'HEAD', 22, 28, ox)
+      );
     }
   },
   {
-    name:'git revert',
-    tag:'UNDO', tagColor:'color-red',
-    desc:'Create a new commit that undoes the changes of a previous commit. Safe for shared history because it does not rewrite commits.',
-    examples:[
-      { code:'git revert a1b2c3d', note:'Revert a specific commit (creates new commit)' },
-      { code:'git revert HEAD~3..HEAD', note:'Revert last 3 commits' },
-      { code:'git revert -n a1b2c3d', note:'Stage the revert but do not commit yet' },
+    name:'git revert', id:'revert',
+    tag:'UNDO', tc:'tr',
+    desc:'Create a new commit that undoes a past commit. Safe for shared history because it never rewrites existing commits.',
+    ex:[
+      {c:'git revert a1b2c3d', n:'Revert one commit (creates new commit)'},
+      {c:'git revert HEAD~3..HEAD', n:'Revert the last 3 commits'},
+      {c:'git revert -n a1b2c3d', n:'Stage the revert without committing yet'}
     ],
-    diagram: () => {
-      const w=340, h=96;
-      return svgWrap(w,h,`
-        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#f85149')}${commit(2,1,'e5f6','#444c56')}
-        ${edge(0,1,1,1)}${edge(1,1,2,1)}
-        ${label(2,1,'main','#3fb950',-22)}${head(2,1,22,24)}
-        ${sLabel(24+UNIT,-8,'← bad commit','#f85149')}
-        ${sLabel(8,84,'git revert c3d4  →  adds new commit that undoes c3d4','#8b949e')}
-        ${commit(3,1,'R','#3fb950')}
-        ${edge(2,1,3,1)}
-        ${label(3,1,'main','#3fb950',-22)}${head(3,1,22,24)}
-        ${sLabel(24+UNIT*3,56,'"revert c3d4"','#3fb950')}
-      `);
+    diag: function() {
+      var w = 340, h = 104;
+      var ox = 168;
+      return svgWrap(w, h,
+        T(8, 11, 'Before', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', '')
+        + C(1, 1, 'c3d4', '#f85149', 'c3d4 - the bad commit')
+        + C(2, 1, 'e5f6', '#2d333b', '')
+        + E(0, 1, 1, 1) + E(1, 1, 2, 1)
+        + L(2, 1, 'main', '#3fb950', '', -20)
+        + HD(2, 1, 'HEAD', 20, 28)
+        + T(26 + U, 8, '<-- bad commit', '#f85149', 8.5)
+        + T(8, 92, 'git revert c3d4  ->  adds new commit R that inverts c3d4', '#8b949e', 8.5)
+        + DIV(164, 104)
+        + T(ox + 8, 11, 'After', '#8b949e', 9, 600)
+        + C(0, 1, 'a1b2', '#2d333b', '', ox)
+        + C(1, 1, 'c3d4', '#f85149', 'still here - history not rewritten', ox)
+        + C(2, 1, 'e5f6', '#2d333b', '', ox)
+        + C(3, 1, 'R', '#3fb950', 'revert commit - cancels out c3d4', ox)
+        + E(0, 1, 1, 1, '#444c56', 'ah', ox) + E(1, 1, 2, 1, '#444c56', 'ah', ox)
+        + E(2, 1, 3, 1, '#3fb950', 'ahg', ox)
+        + L(3, 1, 'main', '#3fb950', '', -20, 0, ox)
+        + HD(3, 1, 'HEAD', 20, 28, ox)
+      );
     }
   },
   {
-    name:'git clean',
-    tag:'UNDO', tagColor:'color-red',
-    desc:'Remove untracked files and directories from the working tree. Often paired with restore to get a perfectly clean state.',
-    examples:[
-      { code:'git clean -n', note:'Dry run — show what would be deleted' },
-      { code:'git clean -fd', note:'Delete untracked files and directories' },
-      { code:'git clean -fdx', note:'Also remove .gitignore\'d files (e.g. build artifacts)' },
+    name:'git clean', id:'clean',
+    tag:'UNDO', tc:'tr',
+    desc:'Remove untracked files and directories from the working tree. Always do a dry run (-n) first.',
+    ex:[
+      {c:'git clean -n', n:'Dry run - show what would be removed'},
+      {c:'git clean -fd', n:'Delete untracked files and directories'},
+      {c:'git clean -fdx', n:'Also remove .gitignore\'d files (dist/, node_modules/)'}
     ],
-    diagram: () => {
-      const w=320, h=90;
-      return svgWrap(w,h,`
-        ${box(8,8,130,72,'#555','Working Tree (before)')}
-        ${sLabel(18,30,'src/ (tracked)','#e6edf3')}
-        ${sLabel(18,44,'dist/ (untracked)','#f85149')}
-        ${sLabel(18,58,'temp.log (untracked)','#f85149')}
-        ${arrow(142,48,178,48,'#f85149')}
-        ${sLabel(144,44,'clean -fd','#f85149')}
-        ${box(182,8,128,72,'#3fb950','After')}
-        ${sLabel(192,30,'src/ ✓ (unchanged)','#e6edf3')}
-        ${sLabel(192,46,'dist/ ✗ deleted','#8b949e')}
-        ${sLabel(192,62,'temp.log ✗ deleted','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 92;
+      return svgWrap(w, h,
+        B(6, 6, 150, 78, '#4d5566', 'Before', 'Working tree with tracked and untracked files')
+        + T(18, 28, 'src/   (tracked)', '#3fb950', 9)
+        + T(18, 42, 'dist/  (untracked)', '#f85149', 9)
+        + T(18, 56, 'temp.log (untracked)', '#f85149', 9)
+        + T(18, 70, '.env   (gitignored)', '#e3b341', 9)
+        + A(160, 44, 192, 44, '#f85149', 'ahr')
+        + T(164, 38, 'clean -fdx', '#f85149', 9, 700)
+        + B(196, 6, 136, 78, '#3fb950', 'After', 'Only tracked files remain')
+        + T(206, 28, 'src/  unchanged', '#e6edf3', 9)
+        + T(206, 42, 'dist/  deleted', '#8b949e', 9)
+        + T(206, 56, 'temp.log deleted', '#8b949e', 9)
+        + T(206, 70, '.env  deleted', '#8b949e', 9)
+      );
     }
   }
   ]
 },
 
 {
-  id:'history', title:'Inspection & History', color:'#e3b341', bg:'bg-yellow', icon:'🔍',
-  commands:[
+  id:'history', title:'Inspection & History', color:'#e3b341', bg:'bgy', icon:'&#128269;',
+  cmds:[
   {
-    name:'git log',
-    tag:'HISTORY', tagColor:'color-yellow',
-    desc:'Browse the commit history. Highly customisable with flags for filtering, formatting, and graph rendering.',
-    examples:[
-      { code:'git log', note:'Full log with diffs' },
-      { code:'git log --oneline --graph --all', note:'Compact graph of all branches' },
-      { code:'git log --author="Ada" --since="2 weeks ago"', note:'Filter by author and date' },
-      { code:'git log -p -- auth.js', note:'Show patches touching auth.js only' },
-      { code:'git log main..feature/login', note:'Commits in feature not yet in main' },
+    name:'git log', id:'log',
+    tag:'HISTORY', tc:'ty',
+    desc:'Browse commit history. Highly customisable with filters, formats, and graph rendering.',
+    ex:[
+      {c:'git log', n:'Full log with messages and metadata'},
+      {c:'git log --oneline --graph --all', n:'Compact ASCII graph of all branches'},
+      {c:'git log --author="Ada" --since="2 weeks ago"', n:'Filter by author and date'},
+      {c:'git log -p -- auth.js', n:'Show patches touching auth.js only'},
+      {c:'git log main..feature/login', n:'Commits in feature not yet in main'}
     ],
-    diagram: () => {
-      const w=320, h=100;
-      return svgWrap(w,h,`
-        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#444c56')}
-        ${commit(1,0,'f1f2','#39c5cf')}${commit(2,0,'g3g4','#39c5cf')}${commit(3,0,'h5h6','#3fb950')}
-        ${edge(0,1,1,1)}${edge(1,1,2,1)}${edge(1,1,1,0)}${edge(1,0,2,0)}${edge(2,0,3,0)}
-        ${label(2,1,'main','#3fb950',-22)}
-        ${label(3,0,'feature/login','#39c5cf',-22)}${head(3,0,22,24)}
-        ${sLabel(8,90,'git log --oneline --graph --all  →  shows this ASCII graph','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 118;
+      return svgWrap(w, h,
+        C(0, 1, 'a1b2', '#2d333b', '')
+        + C(1, 1, 'c3d4', '#2d333b', '')
+        + C(2, 1, 'e5f6', '#2d333b', '')
+        + C(1, 0, 'f1f2', '#39c5cf', '')
+        + C(2, 0, 'g3g4', '#39c5cf', '')
+        + C(3, 0, 'h5h6', '#3fb950', '')
+        + E(0, 1, 1, 1) + E(1, 1, 2, 1)
+        + EC(1, 1, 1, 0, '#39c5cf', 'ahc')
+        + E(1, 0, 2, 0, '#39c5cf', 'ahc')
+        + E(2, 0, 3, 0, '#3fb950', 'ahg')
+        + L(2, 1, 'main', '#3fb950', '', -20)
+        + L(3, 0, 'feature/login', '#39c5cf', '', -20)
+        + HD(3, 0, 'HEAD', 20, 28)
+        + T(8, 106, 'git log --oneline --graph --all  shows the ASCII graph above', '#8b949e', 8.5)
+      );
     }
   },
   {
-    name:'git show',
-    tag:'HISTORY', tagColor:'color-yellow',
-    desc:'Display the details of a commit: its metadata and the diff it introduced. Also works on tags, trees, and blobs.',
-    examples:[
-      { code:'git show', note:'Show the latest commit' },
-      { code:'git show a1b2c3d', note:'Show a specific commit' },
-      { code:'git show main:auth.js', note:'Show auth.js at tip of main' },
-      { code:'git show v1.2.0', note:'Show what an annotated tag points to' },
+    name:'git show', id:'show',
+    tag:'HISTORY', tc:'ty',
+    desc:'Display a single commit (or tag, tree, blob) with its diff. The quickest way to inspect what a specific commit changed.',
+    ex:[
+      {c:'git show', n:'Show the latest commit and its diff'},
+      {c:'git show a1b2c3d', n:'Show a specific commit'},
+      {c:'git show main:auth.js', n:'Show auth.js at the tip of main'},
+      {c:'git show v1.2.0', n:'Show what an annotated tag points to'}
     ],
-    diagram: () => {
-      const w=320, h=90;
-      return svgWrap(w,h,`
-        ${commit(1,1,'e5f6','#3fb950')}
-        ${label(1,1,'HEAD','#f05033',-22)}
-        ${arrow(24+UNIT+R,26+UNIT,200,50,'#e3b341')}
-        ${box(196,10,114,70,'#e3b341','git show output')}
-        ${sLabel(206,30,'commit e5f6…','#e6edf3')}
-        ${sLabel(206,44,'Author: Ada','#e6edf3')}
-        ${sLabel(206,58,'+ added login()','#3fb950')}
-        ${sLabel(206,72,'- removed old()','#f85149')}
-      `);
+    diag: function() {
+      var w = 340, h = 92;
+      return svgWrap(w, h,
+        C(1, 1, 'e5f6', '#3fb950', 'commit e5f6 - most recent commit')
+        + L(1, 1, 'HEAD', '#f05033', 'HEAD - you are here', 20, 2)
+        + A(26 + U + R + 2, 26 + U, 210, 50, '#e3b341', 'ah')
+        + B(212, 8, 120, 76, '#e3b341', 'git show output', 'Full diff and metadata for this commit')
+        + T(222, 28, 'commit e5f6...', '#e6edf3', 9, 600)
+        + T(222, 40, 'Author: Ada L.', '#e6edf3', 8.5)
+        + T(222, 52, 'Date: 2024-06-01', '#8b949e', 8)
+        + T(222, 64, '+ added login()', '#3fb950', 8.5)
+        + T(222, 76, '- removed old()', '#f85149', 8.5)
+      );
     }
   },
   {
-    name:'git blame',
-    tag:'HISTORY', tagColor:'color-yellow',
-    desc:'Annotate each line of a file with the commit hash and author that last modified it. Great for tracking down when a bug was introduced.',
-    examples:[
-      { code:'git blame auth.js', note:'Annotate every line in auth.js' },
-      { code:'git blame -L 10,25 auth.js', note:'Only annotate lines 10–25' },
-      { code:'git blame -w auth.js', note:'Ignore whitespace-only changes' },
+    name:'git blame', id:'blame',
+    tag:'HISTORY', tc:'ty',
+    desc:'Annotate each line of a file with the commit and author that last modified it. Great for tracking down when a bug was introduced.',
+    ex:[
+      {c:'git blame auth.js', n:'Annotate every line of auth.js'},
+      {c:'git blame -L 10,25 auth.js', n:'Only lines 10 to 25'},
+      {c:'git blame -w auth.js', n:'Ignore whitespace-only changes'},
+      {c:'git log -S "login()" --follow auth.js', n:'Find which commit introduced "login()"'}
     ],
-    diagram: () => {
-      const w=320, h=86;
-      return svgWrap(w,h,`
-        ${box(8,8,300,70,'#444c56','git blame auth.js')}
-        ${sLabel(18,28,'a1b2 (Ada  2024-01) const login = () => {','#e6edf3')}
-        ${sLabel(18,42,'c3d4 (Bob  2024-03)   fetch("/api/auth")','#e6edf3')}
-        ${sLabel(18,56,'e5f6 (Ada  2024-05)   .then(setUser)','#3fb950')}
-        ${sLabel(18,70,'c3d4 (Bob  2024-03) }','#e6edf3')}
-      `);
+    diag: function() {
+      var w = 340, h = 90;
+      return svgWrap(w, h,
+        B(6, 6, 328, 76, '#4d5566', 'git blame auth.js', 'Each line annotated with hash, author, date')
+        + T(16, 26, 'a1b2 (Ada  2024-01-10)  const login = () => {', '#e6edf3', 9)
+        + T(16, 40, 'c3d4 (Bob  2024-03-22)    return fetch("/api/auth")', '#e3b341', 9)
+        + T(16, 54, 'e5f6 (Ada  2024-05-01)      .then(r => r.json())', '#3fb950', 9)
+        + T(16, 68, 'c3d4 (Bob  2024-03-22)  }', '#e6edf3', 9)
+      );
     }
   },
   {
-    name:'git reflog',
-    tag:'HISTORY', tagColor:'color-yellow',
-    desc:'Show a log of all movements of HEAD — including rebases, resets, and checkouts. Your safety net for recovering "lost" commits.',
-    examples:[
-      { code:'git reflog', note:'Show all HEAD movements' },
-      { code:'git reflog show feature/login', note:'Show history of a specific branch ref' },
-      { code:'git checkout HEAD@{3}', note:'Go back 3 HEAD positions' },
-      { code:'git reset --hard HEAD@{1}', note:'Undo last operation entirely' },
+    name:'git reflog', id:'reflog',
+    tag:'HISTORY', tc:'ty',
+    desc:'Show every HEAD movement including resets, rebases, and checkouts. Your safety net for recovering "lost" commits.',
+    ex:[
+      {c:'git reflog', n:'Show all HEAD movements with timestamps'},
+      {c:'git reflog show feature/login', n:'Show history of a specific branch ref'},
+      {c:'git checkout HEAD@{3}', n:'Go back to where HEAD was 3 moves ago'},
+      {c:'git reset --hard HEAD@{1}', n:'Completely undo the last git operation'}
     ],
-    diagram: () => {
-      const w=320, h=90;
-      return svgWrap(w,h,`
-        ${box(8,8,300,74,'#444c56','git reflog output')}
-        ${sLabel(18,28,'e5f6 HEAD@{0}: commit: feat: add login','#3fb950')}
-        ${sLabel(18,42,'c3d4 HEAD@{1}: rebase: onto main','#e3b341')}
-        ${sLabel(18,56,'a1b2 HEAD@{2}: checkout: moved to main','#8b949e')}
-        ${sLabel(18,70,'f1f2 HEAD@{3}: reset: moving to f1f2','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 94;
+      return svgWrap(w, h,
+        B(6, 6, 328, 80, '#4d5566', 'git reflog', 'Every HEAD movement - nothing is truly lost')
+        + T(16, 24, 'e5f6 HEAD@{0}: commit: feat: add login form', '#3fb950', 8.5, 700)
+        + T(16, 38, 'c3d4 HEAD@{1}: rebase finished: onto main', '#e3b341', 8.5)
+        + T(16, 52, 'a1b2 HEAD@{2}: checkout: moving from feature to main', '#8b949e', 8.5)
+        + T(16, 66, 'f1f2 HEAD@{3}: reset: moving to f1f2', '#8b949e', 8.5)
+        + T(16, 80, '<-- use HEAD@{n} with reset to undo any of these moves', '#555', 8)
+      );
     }
   }
   ]
 },
 
 {
-  id:'advanced', title:'Advanced & Tags', color:'#ff7eb6', bg:'bg-pink', icon:'🚀',
-  commands:[
+  id:'advanced', title:'Tags & Advanced', color:'#ff7eb6', bg:'bgk', icon:'&#128640;',
+  cmds:[
   {
-    name:'git tag',
-    tag:'ADVANCED', tagColor:'color-pink',
-    desc:'Mark a specific commit with a permanent human-readable name (e.g. version numbers). Annotated tags store extra metadata and are recommended for releases.',
-    examples:[
-      { code:'git tag v1.0.0', note:'Lightweight tag at HEAD' },
-      { code:'git tag -a v1.2.0 -m "Release v1.2.0"', note:'Annotated tag with message' },
-      { code:'git push origin v1.2.0', note:'Push a specific tag to remote' },
-      { code:'git tag -d v1.0.0', note:'Delete a local tag' },
-      { code:'git push origin --delete v1.0.0', note:'Delete a remote tag' },
+    name:'git tag', id:'tag',
+    tag:'ADVANCED', tc:'tk',
+    desc:'Mark a commit with a permanent human-readable name (e.g. version numbers). Annotated tags include extra metadata and are recommended for releases.',
+    ex:[
+      {c:'git tag v1.0.0', n:'Lightweight tag at HEAD'},
+      {c:'git tag -a v1.2.0 -m "Release v1.2.0"', n:'Annotated tag with message'},
+      {c:'git push origin v1.2.0', n:'Push a specific tag to remote'},
+      {c:'git tag -d v1.0.0', n:'Delete a local tag'},
+      {c:'git push origin --delete v1.0.0', n:'Delete a remote tag'}
     ],
-    diagram: () => {
-      const w=320, h=90;
-      return svgWrap(w,h,`
-        ${commit(0,1,'a1b2','#444c56')}${commit(1,1,'c3d4','#444c56')}${commit(2,1,'e5f6','#444c56')}${commit(3,1,'g7h8','#444c56')}
-        ${edge(0,1,1,1)}${edge(1,1,2,1)}${edge(2,1,3,1)}
-        ${label(3,1,'main','#3fb950',-22)}${head(3,1,22,24)}
-        ${sLabel(24+UNIT,-8,'v1.0.0','#ff7eb6')}
-        ${sLabel(24+UNIT*3,-8,'v1.2.0','#ff7eb6')}
-        <line x1="${24+UNIT}" y1="0" x2="${24+UNIT}" y2="${26+UNIT-R-2}" stroke="#ff7eb6" stroke-width="1.5" stroke-dasharray="3,2"/>
-        <line x1="${24+UNIT*3}" y1="0" x2="${24+UNIT*3}" y2="${26+UNIT-R-2}" stroke="#ff7eb6" stroke-width="1.5" stroke-dasharray="3,2"/>
-      `);
+    diag: function() {
+      var w = 340, h = 100;
+      var p1 = gxy(1, 1), p3 = gxy(3, 1);
+      return svgWrap(w, h,
+        C(0, 1, 'a1b2', '#2d333b', '')
+        + C(1, 1, 'c3d4', '#2d333b', 'This commit is tagged v1.0.0')
+        + C(2, 1, 'e5f6', '#2d333b', '')
+        + C(3, 1, 'g7h8', '#2d333b', 'This commit is tagged v1.2.0')
+        + C(4, 1, 'i9j0', '#2d333b', '')
+        + E(0, 1, 1, 1) + E(1, 1, 2, 1) + E(2, 1, 3, 1) + E(3, 1, 4, 1)
+        + L(4, 1, 'main', '#3fb950', '', -20)
+        + HD(4, 1, 'HEAD', 20, 28)
+        + T(p1.x - 18, 8, 'v1.0.0', '#ff7eb6', 9, 700)
+        + T(p3.x - 18, 8, 'v1.2.0', '#ff7eb6', 9, 700)
+        + '<line x1="' + p1.x + '" y1="12" x2="' + p1.x + '" y2="' + (26 + U - R - 2) + '" stroke="#ff7eb6" stroke-width="1.5" stroke-dasharray="4,3"/>'
+        + '<line x1="' + p3.x + '" y1="12" x2="' + p3.x + '" y2="' + (26 + U - R - 2) + '" stroke="#ff7eb6" stroke-width="1.5" stroke-dasharray="4,3"/>'
+        + B(6, 82, 152, 14, '#ff7eb6', 'lightweight: just a pointer', '')
+        + B(164, 82, 168, 14, '#bc8cff', 'annotated -a: includes tagger + message', '')
+      );
     }
   },
   {
-    name:'git bisect',
-    tag:'ADVANCED', tagColor:'color-pink',
-    desc:'Binary-search through commit history to find the commit that introduced a bug. Dramatically faster than manual "git checkout + test" loops.',
-    examples:[
-      { code:'git bisect start', note:'Begin bisect session' },
-      { code:'git bisect bad', note:'Mark current commit as broken' },
-      { code:'git bisect good v1.0.0', note:'Mark v1.0.0 as working' },
-      { code:'git bisect run npm test', note:'Automate — run tests at each step' },
-      { code:'git bisect reset', note:'Return to original HEAD when done' },
+    name:'git bisect', id:'bisect',
+    tag:'ADVANCED', tc:'tk',
+    desc:'Binary-search through commits to find the one that introduced a bug. Much faster than manual checkout loops.',
+    ex:[
+      {c:'git bisect start', n:'Begin a bisect session'},
+      {c:'git bisect bad', n:'Mark current commit as broken'},
+      {c:'git bisect good v1.0.0', n:'Mark v1.0.0 as working'},
+      {c:'git bisect run npm test', n:'Automate - run tests at each bisect step'},
+      {c:'git bisect reset', n:'Return to original HEAD when done'}
     ],
-    diagram: () => {
-      const w=340, h=96;
-      return svgWrap(w,h,`
-        ${commit(0,1,'★','#3fb950')}${commit(1,1,'?','#e3b341')}${commit(2,1,'?','#e3b341')}${commit(3,1,'?','#e3b341')}${commit(4,1,'✗','#f85149')}
-        ${edge(0,1,1,1)}${edge(1,1,2,1)}${edge(2,1,3,1)}${edge(3,1,4,1)}
-        ${sLabel(24-6,58,'good','#3fb950')}${sLabel(24+UNIT*4-6,58,'bad','#f85149')}
-        ${sLabel(24+UNIT*2-10,72,'check mid','#e3b341')}
-        <line x1="${24+UNIT*2}" y1="${26+UNIT+8}" x2="${24+UNIT*2}" y2="${26+UNIT+20}" stroke="#e3b341" stroke-width="1.5"/>
-        ${sLabel(8,92,'bisect tests the midpoint each time → O(log n) steps','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 102;
+      return svgWrap(w, h,
+        C(0, 1, 'OK', '#3fb950', 'GOOD - bug is not present here')
+        + C(1, 1, '?', '#e3b341', 'UNKNOWN - bisect tests here first (midpoint)')
+        + C(2, 1, '?', '#e3b341', 'UNKNOWN')
+        + C(3, 1, '?', '#e3b341', 'UNKNOWN')
+        + C(4, 1, 'BAD', '#f85149', 'BAD - bug is present here')
+        + E(0, 1, 1, 1) + E(1, 1, 2, 1) + E(2, 1, 3, 1) + E(3, 1, 4, 1)
+        + T(26 - 8, 66, 'good', '#3fb950', 8, 700)
+        + T(26 + U * 4 - 10, 66, 'bad', '#f85149', 8, 700)
+        + T(26 + U * 2 - 10, 70, '<-- test', '#e3b341', 8)
+        + '<line x1="' + (26 + U * 2) + '" y1="73" x2="' + (26 + U * 2) + '" y2="82" stroke="#e3b341" stroke-width="1.5"/>'
+        + T(8, 96, 'Bisect tests the midpoint each round -> finds bug in O(log n) steps', '#8b949e', 8.5)
+      );
     }
   },
   {
-    name:'git worktree',
-    tag:'ADVANCED', tagColor:'color-pink',
-    desc:'Check out multiple branches simultaneously into separate directories — all sharing the same .git folder. Perfect for working on two things at once.',
-    examples:[
-      { code:'git worktree add ../hotfix-42 hotfix/bug-42', note:'Check out branch in sibling folder' },
-      { code:'git worktree list', note:'List all linked working trees' },
-      { code:'git worktree remove ../hotfix-42', note:'Remove a worktree when done' },
+    name:'git worktree', id:'worktree',
+    tag:'ADVANCED', tc:'tk',
+    desc:'Check out multiple branches into separate directories simultaneously, all sharing one .git object store.',
+    ex:[
+      {c:'git worktree add ../hotfix-42 hotfix/bug-42', n:'Check out branch in a sibling folder'},
+      {c:'git worktree list', n:'List all linked working trees'},
+      {c:'git worktree remove ../hotfix-42', n:'Remove a worktree when done'}
     ],
-    diagram: () => {
-      const w=320, h=90;
-      return svgWrap(w,h,`
-        ${box(8,8,90,74,'#58a6ff','~/.git')}
-        ${sLabel(18,42,'shared object','#8b949e')}${sLabel(18,56,'database','#8b949e')}
-        ${arrow(100,30,150,22,'#555')}
-        ${arrow(100,58,150,66,'#555')}
-        ${box(154,8,80,32,'#3fb950','./  (main)')}
-        ${sLabel(164,28,'main','#e6edf3')}
-        ${box(154,52,80,32,'#bc8cff','../hotfix')}
-        ${sLabel(164,72,'hotfix/bug-42','#e6edf3')}
-      `);
+    diag: function() {
+      var w = 340, h = 90;
+      return svgWrap(w, h,
+        B(6, 6, 92, 76, '#58a6ff', '~/.git', 'Single shared object store for both directories')
+        + T(18, 44, 'shared', '#8b949e', 9)
+        + T(18, 56, 'objects', '#8b949e', 9)
+        + A(100, 30, 140, 22, '#4d5566', 'ah')
+        + A(100, 60, 140, 70, '#4d5566', 'ah')
+        + B(144, 6, 88, 30, '#3fb950', './ (main branch)', 'Primary working directory')
+        + T(156, 26, 'main', '#e6edf3', 9)
+        + B(144, 52, 88, 30, '#bc8cff', '../hotfix-42', 'Secondary working directory')
+        + T(156, 72, 'hotfix/bug-42', '#e6edf3', 8.5)
+        + T(8, 86, 'Both directories share commits - no duplication of history', '#555', 8.5)
+      );
     }
   },
   {
-    name:'git submodule',
-    tag:'ADVANCED', tagColor:'color-pink',
-    desc:'Embed another Git repository as a sub-directory of your project at a pinned commit. Each submodule is tracked by its own .git.',
-    examples:[
-      { code:'git submodule add https://github.com/org/lib.git libs/lib', note:'Add a submodule' },
-      { code:'git submodule update --init --recursive', note:'Clone/init all submodules' },
-      { code:'git submodule foreach git pull origin main', note:'Update all submodules' },
+    name:'git submodule', id:'submod',
+    tag:'ADVANCED', tc:'tk',
+    desc:'Embed another repository as a subdirectory pinned to a specific commit. Each submodule has its own .git and history.',
+    ex:[
+      {c:'git submodule add https://github.com/org/lib.git libs/lib', n:'Add a submodule'},
+      {c:'git submodule update --init --recursive', n:'Clone and initialise all submodules after clone'},
+      {c:'git submodule foreach git pull origin main', n:'Update all submodules to latest'}
     ],
-    diagram: () => {
-      const w=320, h=90;
-      return svgWrap(w,h,`
-        ${box(8,8,130,72,'#3fb950','my-app (repo)')}
-        ${sLabel(18,30,'src/','#e6edf3')}
-        ${sLabel(18,44,'libs/ui-lib/ ←','#bc8cff')}
-        ${sLabel(18,58,'.gitmodules','#e6edf3')}
-        ${sLabel(18,72,'(pinned SHA)','#8b949e')}
-        ${arrow(142,46,178,46,'#555')}
-        ${box(182,8,130,72,'#bc8cff','ui-lib (separate repo)')}
-        ${sLabel(192,30,'its own .git','#e6edf3')}
-        ${sLabel(192,44,'own commit history','#e6edf3')}
-        ${sLabel(192,58,'pinned to SHA abc123','#8b949e')}
-      `);
+    diag: function() {
+      var w = 340, h = 90;
+      return svgWrap(w, h,
+        B(6, 6, 148, 76, '#3fb950', 'my-app (parent repo)', 'Main project with an embedded submodule')
+        + T(18, 28, 'src/', '#e6edf3', 9)
+        + T(18, 42, 'libs/ui-lib/  <--', '#bc8cff', 9, 700)
+        + T(18, 56, '.gitmodules', '#e6edf3', 9)
+        + T(18, 70, '(pinned SHA: abc123)', '#8b949e', 8)
+        + A(158, 44, 192, 44, '#4d5566', 'ah')
+        + B(196, 6, 136, 76, '#bc8cff', 'ui-lib (separate repo)', 'Own .git, own history')
+        + T(206, 28, 'own .git folder', '#e6edf3', 9)
+        + T(206, 42, 'own commit history', '#e6edf3', 9)
+        + T(206, 56, 'pinned to abc123', '#8b949e', 8)
+        + T(206, 70, '<-- parent controls version', '#8b949e', 8)
+      );
     }
   }
   ]
 }
 ];
 
-// ─────────────────────────────────────────────────────────────
-//  RENDER
-// ─────────────────────────────────────────────────────────────
-function copyIcon() {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
-}
-function checkIcon() {
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
-}
+// ============================================================
+//  BUILD SIDEBAR TREE
+// ============================================================
+function buildTree() {
+  var tree = document.getElementById('sbTree');
+  var rail = document.getElementById('sbRail');
+  var tHtml = '', rHtml = '';
 
-function renderSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  let html = '<div class="sidebar-label">Workflow Sections</div>';
-  SECTIONS.forEach((s, i) => {
-    html += `<a class="sidebar-link ${i===0?'active':''}" data-section="${s.id}" onclick="scrollTo('${s.id}')">
-      <span class="sidebar-dot" style="background:${s.color}"></span>
-      ${s.title}
-    </a>`;
+  SECS.forEach(function(s) {
+    var cmds = '';
+    s.cmds.forEach(function(c) {
+      cmds += '<div class="tcmd" id="tcmd-' + c.id + '" onclick="jumpCard(\'' + c.id + '\')">'
+            + '<span class="tcmd-dot" style="background:' + s.color + '55"></span>'
+            + c.name + '</div>';
+    });
+    tHtml += '<div class="tree-sec" id="tsec-' + s.id + '">'
+           + '<div class="tsec-hdr" id="thdr-' + s.id + '" onclick="toggleSec(\'' + s.id + '\')">'
+           + '<span class="tarrow open" id="tarr-' + s.id + '">&#9654;</span>'
+           + '<span class="ticon">' + s.icon + '</span>'
+           + '<span class="tlabel">' + s.title + '</span>'
+           + '<span class="tcount">' + s.cmds.length + '</span>'
+           + '</div>'
+           + '<div class="tchildren" id="tch-' + s.id + '">' + cmds + '</div>'
+           + '</div>';
+
+    rHtml += '<button class="rbtn" id="rbtn-' + s.id + '" title="' + s.title
+           + '" onclick="jumpSection(\'' + s.id + '\')">'
+           + '<span style="pointer-events:none">' + s.icon + '</span></button>';
   });
-  sidebar.innerHTML = html;
+
+  tree.innerHTML = tHtml;
+  rail.innerHTML = rHtml;
 }
 
-function renderMain() {
-  const main = document.getElementById('main');
-  let totalCommands = 0;
-  let html = '';
+function toggleSec(id) {
+  var ch = document.getElementById('tch-' + id);
+  var arr = document.getElementById('tarr-' + id);
+  var isOpen = ch.style.maxHeight !== '0px' && ch.style.maxHeight !== '';
+  ch.style.maxHeight = isOpen ? '0px' : '400px';
+  if (isOpen) {
+    ch.classList.add('shut');
+    arr.classList.remove('open');
+  } else {
+    ch.classList.remove('shut');
+    arr.classList.add('open');
+  }
+}
 
-  SECTIONS.forEach(section => {
-    totalCommands += section.commands.length;
-    html += `<section class="section" id="section-${section.id}" data-section="${section.id}">
-      <div class="section-header">
-        <div class="section-icon ${section.bg}">${section.icon}</div>
-        <div>
-          <div class="section-title">${section.title}</div>
-          <div class="section-subtitle">${section.commands.length} command${section.commands.length>1?'s':''}</div>
-        </div>
-      </div>
-      <div class="cards-grid">
-        ${section.commands.map(cmd => renderCard(cmd)).join('')}
-      </div>
-    </section>`;
+// ============================================================
+//  BUILD MAIN CONTENT
+// ============================================================
+var COPY_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+var CHECK_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+
+function he(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function buildMain() {
+  var main = document.getElementById('main');
+  var total = 0;
+  var html = '';
+
+  SECS.forEach(function(s) {
+    total += s.cmds.length;
+    var cards = '';
+
+    s.cmds.forEach(function(cmd) {
+      var exHtml = '';
+      cmd.ex.forEach(function(e) {
+        exHtml += '<div class="ex">'
+                + '<div class="ex-code"><span style="color:#58a6ff">$</span> ' + he(e.c)
+                + '<span class="ex-note">  # ' + he(e.n) + '</span></div>'
+                + '<button class="cpbtn" onclick="doCopy(this,' + JSON.stringify(e.c) + ')" title="Copy">' + COPY_IC + '</button>'
+                + '</div>';
+      });
+
+      cards += '<div class="card" id="card-' + cmd.id + '" data-keys="' + he(cmd.name) + ' ' + he(cmd.desc) + ' ' + he(cmd.tag) + '">'
+             + '<div class="card-hdr">'
+             + '<span class="card-name">' + he(cmd.name) + '</span>'
+             + '<span class="card-tag ' + cmd.tc + '">' + cmd.tag + '</span>'
+             + '</div>'
+             + '<div class="card-body">'
+             + '<p class="card-desc">' + he(cmd.desc) + '</p>'
+             + '<div class="dw">' + cmd.diag() + '</div>'
+             + '<div class="exs">' + exHtml + '</div>'
+             + '</div></div>';
+    });
+
+    html += '<section class="section" id="sec-' + s.id + '" data-sid="' + s.id + '">'
+          + '<div class="sec-hdr">'
+          + '<div class="sec-icon ' + s.bg + '">' + s.icon + '</div>'
+          + '<div><div class="sec-title">' + s.title + '</div>'
+          + '<div class="sec-sub">' + s.cmds.length + ' command' + (s.cmds.length > 1 ? 's' : '') + '</div></div>'
+          + '</div>'
+          + '<div class="cards-grid">' + cards + '</div>'
+          + '</section>';
   });
 
   main.innerHTML += html;
-  document.getElementById('cmdCount').textContent = `${totalCommands} commands`;
+  document.getElementById('cmdBadge').textContent = total + ' commands';
 }
 
-function renderCard(cmd) {
-  const diagramHTML = cmd.diagram ? cmd.diagram() : '';
-  const examplesHTML = cmd.examples.map(ex => `
-    <div class="example">
-      <div class="example-code"><span style="color:#58a6ff">$</span> ${escHtml(ex.code)}<span class="example-comment">  # ${escHtml(ex.note)}</span></div>
-      <button class="copy-btn" onclick="copyCode(this, ${JSON.stringify(ex.code)})" title="Copy">${copyIcon()}</button>
-    </div>
-  `).join('');
-
-  return `<div class="card" data-name="${cmd.name.toLowerCase()}" data-desc="${cmd.desc.toLowerCase()}">
-    <div class="card-header">
-      <span class="card-title">${escHtml(cmd.name)}</span>
-      <span class="card-tag ${cmd.tagColor}">${cmd.tag}</span>
-    </div>
-    <div class="card-body">
-      <div class="card-desc">${escHtml(cmd.desc)}</div>
-      ${diagramHTML ? `<div class="diagram-wrap"><div class="diagram-label">Diagram</div>${diagramHTML}</div>` : ''}
-      <div class="examples">${examplesHTML}</div>
-    </div>
-  </div>`;
-}
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ─────────────────────────────────────────────────────────────
-//  INTERACTIVITY
-// ─────────────────────────────────────────────────────────────
-function copyCode(btn, text) {
-  navigator.clipboard.writeText(text).then(() => {
-    btn.innerHTML = checkIcon();
-    btn.classList.add('copied');
-    setTimeout(() => { btn.innerHTML = copyIcon(); btn.classList.remove('copied'); }, 1800);
+// ============================================================
+//  COPY TO CLIPBOARD
+// ============================================================
+function doCopy(btn, text) {
+  navigator.clipboard.writeText(text).then(function() {
+    btn.innerHTML = CHECK_IC;
+    btn.classList.add('done');
+    setTimeout(function() { btn.innerHTML = COPY_IC; btn.classList.remove('done'); }, 1800);
   });
 }
 
-function scrollTo(sectionId) {
-  const el = document.getElementById('section-' + sectionId);
-  if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
-  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.toggle('active', l.dataset.section === sectionId));
+// ============================================================
+//  SIDEBAR TOGGLE
+// ============================================================
+var sbClosed = false;
+function toggleSb() {
+  sbClosed = !sbClosed;
+  document.getElementById('sb').classList.toggle('closed', sbClosed);
 }
 
-function setupSearch() {
-  const input = document.getElementById('searchInput');
-  input.addEventListener('input', () => {
-    const q = input.value.toLowerCase().trim();
-    let anyVisible = false;
-    document.querySelectorAll('.section').forEach(section => {
-      let sectionHasVisible = false;
-      section.querySelectorAll('.card').forEach(card => {
-        const match = !q || card.dataset.name.includes(q) || card.dataset.desc.includes(q) ||
-          card.textContent.toLowerCase().includes(q);
-        card.classList.toggle('hidden', !match);
-        if (match) sectionHasVisible = true;
-      });
-      section.classList.toggle('all-hidden', !sectionHasVisible);
-      if (sectionHasVisible) anyVisible = true;
+// ============================================================
+//  NAVIGATION
+// ============================================================
+function jumpCard(id) {
+  var el = document.getElementById('card-' + id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  var orig = el.style.boxShadow;
+  el.style.transition = 'box-shadow .15s';
+  el.style.boxShadow = '0 0 0 2px #58a6ff99';
+  setTimeout(function() { el.style.boxShadow = orig; }, 1400);
+}
+
+function jumpSection(id) {
+  var el = document.getElementById('sec-' + id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setActiveSection(id);
+}
+
+function setActiveSection(id) {
+  document.querySelectorAll('.tsec-hdr').forEach(function(e) { e.classList.remove('active'); });
+  var hdr = document.getElementById('thdr-' + id);
+  if (hdr) hdr.classList.add('active');
+  document.querySelectorAll('.rbtn').forEach(function(e) { e.classList.remove('on'); });
+  var rb = document.getElementById('rbtn-' + id);
+  if (rb) rb.classList.add('on');
+}
+
+function setActiveCmd(id) {
+  document.querySelectorAll('.tcmd').forEach(function(e) { e.classList.remove('on'); });
+  var c = document.getElementById('tcmd-' + id);
+  if (c) c.classList.add('on');
+}
+
+// ============================================================
+//  SEARCH
+// ============================================================
+document.getElementById('srchInput').addEventListener('input', function() {
+  var q = this.value.toLowerCase().trim();
+  var any = false;
+
+  document.querySelectorAll('.section').forEach(function(sec) {
+    var vis = false;
+    sec.querySelectorAll('.card').forEach(function(card) {
+      var match = !q || card.dataset.keys.toLowerCase().indexOf(q) >= 0;
+      card.classList.toggle('hidden', !match);
+      if (match) vis = true;
     });
-    document.getElementById('noResults').style.display = anyVisible ? 'none' : 'block';
+    sec.classList.toggle('all-hidden', !vis);
+    if (vis) any = true;
   });
-}
 
-function setupScrollSpy() {
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const id = entry.target.dataset.section;
-        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.toggle('active', l.dataset.section === id));
-      }
+  document.getElementById('noRes').style.display = any ? 'none' : 'block';
+
+  if (q) {
+    SECS.forEach(function(s) {
+      var ch = document.getElementById('tch-' + s.id);
+      var arr = document.getElementById('tarr-' + s.id);
+      if (ch) { ch.style.maxHeight = '400px'; ch.classList.remove('shut'); }
+      if (arr) arr.classList.add('open');
     });
-  }, { threshold: 0.2 });
-  document.querySelectorAll('.section').forEach(s => observer.observe(s));
-}
+  }
+});
 
-// ─────────────────────────────────────────────────────────────
+// ============================================================
+//  SCROLL SPY
+// ============================================================
+var mainEl = document.querySelector('.main');
+mainEl.addEventListener('scroll', function() {
+  var top = mainEl.scrollTop;
+  var mid = top + mainEl.clientHeight / 3;
+  var curSec = null, curCmd = null;
+
+  document.querySelectorAll('.section:not(.all-hidden)').forEach(function(s) {
+    if (s.offsetTop <= mid) curSec = s.dataset.sid;
+  });
+  document.querySelectorAll('.card:not(.hidden)').forEach(function(c) {
+    if (c.offsetTop <= mid + 60) curCmd = c.id.replace('card-', '');
+  });
+
+  if (curSec) setActiveSection(curSec);
+  if (curCmd) setActiveCmd(curCmd);
+}, { passive: true });
+
+// ============================================================
+//  TOOLTIP ENGINE
+// ============================================================
+var tipEl = document.getElementById('tip');
+var tipTimer = null;
+
+document.addEventListener('mousemove', function(e) {
+  if (tipEl.classList.contains('show')) {
+    var left = Math.min(e.clientX + 14, window.innerWidth - tipEl.offsetWidth - 8);
+    var top = Math.max(e.clientY - 40, 6);
+    tipEl.style.left = left + 'px';
+    tipEl.style.top = top + 'px';
+  }
+});
+
+document.addEventListener('mouseover', function(e) {
+  var tgt = e.target.closest ? e.target.closest('[data-tip]') : null;
+  if (!tgt) return;
+  clearTimeout(tipTimer);
+  var msg = tgt.getAttribute('data-tip');
+  tipTimer = setTimeout(function() {
+    tipEl.textContent = msg;
+    tipEl.classList.add('show');
+  }, 180);
+});
+
+document.addEventListener('mouseout', function(e) {
+  var tgt = e.target.closest ? e.target.closest('[data-tip]') : null;
+  if (!tgt) return;
+  clearTimeout(tipTimer);
+  tipEl.classList.remove('show');
+});
+
+// ============================================================
 //  INIT
-// ─────────────────────────────────────────────────────────────
-renderSidebar();
-renderMain();
-setupSearch();
-setupScrollSpy();
+// ============================================================
+buildTree();
+buildMain();
 </script>
 </body>
 </html>
