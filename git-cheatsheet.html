@@ -6,271 +6,476 @@
 <title>Git Cheat Sheet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#0f0e0d; --sf:#161412; --s2:#1d1a18; --bd:#2a2520; --bd2:#3a332c;
-  --tx:#ece5dd; --mu:#7a706a; --du:#3e3530;
-  --orange:#f0703a; --blue:#5aa4f4; --green:#4dc97a;
-  --yellow:#e4aa4c; --purple:#a87ee6; --red:#e55f5f;
-  --cyan:#35b9c6; --pink:#df7ac5;
-  --sbw:252px; --sbwc:46px; --tbh:46px;
+  --bg:#07060c; --sf:rgba(20,17,28,.72); --s2:rgba(32,27,44,.85); --glass:rgba(255,255,255,.03);
+  --bd:rgba(255,255,255,.07); --bd2:rgba(255,255,255,.14);
+  --tx:#f0ecf6; --mu:#8d84a0; --du:#4d4660;
+  --orange:#ff7847; --blue:#5aa4f4; --green:#4dde8a;
+  --yellow:#f0b454; --purple:#b08af2; --red:#ff6b6b;
+  --cyan:#3cd2e0; --pink:#f084d2;
+  --grad:linear-gradient(120deg,#ff7847 0%,#f084d2 50%,#b08af2 100%);
+  --sbw:264px; --sbwc:52px; --tbh:52px;
   --mono:'JetBrains Mono','SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
-  --r:2px;
+  --disp:'Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --r:12px; --rs:8px;
+  --ease:cubic-bezier(.16,1,.3,1);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  font-family:var(--disp);
   background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px;
-  line-height:1.6;overflow-x:hidden
+  line-height:1.6;overflow-x:hidden;
 }
 
-/* TOOLTIP */
+/* ====== ANIMATED BACKGROUND ====== */
+.bg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-fx::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,black 30%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,black 30%,transparent 75%);
+}
+.orb{position:absolute;border-radius:50%;filter:blur(110px);opacity:.5;will-change:transform}
+.orb-1{width:560px;height:560px;background:radial-gradient(circle,#ff784733,transparent 65%);top:-180px;left:-120px;animation:drift1 26s ease-in-out infinite alternate}
+.orb-2{width:640px;height:640px;background:radial-gradient(circle,#b08af233,transparent 65%);top:10%;right:-220px;animation:drift2 32s ease-in-out infinite alternate}
+.orb-3{width:480px;height:480px;background:radial-gradient(circle,#3cd2e022,transparent 65%);bottom:-200px;left:30%;animation:drift3 38s ease-in-out infinite alternate}
+@keyframes drift1{from{transform:translate(0,0) scale(1)}to{transform:translate(140px,90px) scale(1.15)}}
+@keyframes drift2{from{transform:translate(0,0) scale(1.1)}to{transform:translate(-160px,120px) scale(.95)}}
+@keyframes drift3{from{transform:translate(0,0)}to{transform:translate(120px,-100px) scale(1.2)}}
+
+/* ====== KEYFRAMES ====== */
+@keyframes fadeUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{to{opacity:1}}
+@keyframes popIn{0%{opacity:0;transform:scale(0)}70%{transform:scale(1.18)}100%{opacity:1;transform:scale(1)}}
+@keyframes rectIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+@keyframes drawLine{to{stroke-dashoffset:0}}
+@keyframes headPulse{0%,100%{filter:drop-shadow(0 0 0px #ff7847)}50%{filter:drop-shadow(0 0 7px #ff7847cc)}}
+@keyframes shimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes spinSlow{to{transform:rotate(360deg)}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 18px #ff784722}50%{box-shadow:0 0 34px #ff784755}}
+
+/* ====== TOOLTIP ====== */
 #tip{
   position:fixed;z-index:9000;pointer-events:none;
-  background:var(--s2);border:1px solid var(--bd2);color:var(--tx);
-  font-size:11px;padding:4px 9px;border-radius:var(--r);
-  box-shadow:0 4px 20px rgba(0,0,0,.7);
-  opacity:0;transition:opacity .1s;max-width:240px;line-height:1.45;
-  white-space:normal;font-family:var(--mono)
+  background:rgba(26,22,38,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--bd2);color:var(--tx);
+  font-size:11px;padding:6px 11px;border-radius:8px;
+  box-shadow:0 8px 32px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04) inset;
+  opacity:0;transform:translateY(5px) scale(.96);
+  transition:opacity .18s var(--ease),transform .18s var(--ease);
+  max-width:250px;line-height:1.45;white-space:normal;font-family:var(--mono)
 }
-#tip.show{opacity:1}
+#tip.show{opacity:1;transform:translateY(0) scale(1)}
 
-/* TOPBAR */
+/* ====== TOPBAR ====== */
 .topbar{
   position:sticky;top:0;z-index:500;height:var(--tbh);
-  background:var(--sf);border-bottom:1px solid var(--bd);
-  display:flex;align-items:center;gap:10px;padding:0 14px;
+  background:rgba(10,8,16,.65);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border-bottom:1px solid var(--bd);
+  display:flex;align-items:center;gap:12px;padding:0 16px;
 }
-.topbar::after{
-  content:'';
-  position:absolute;top:0;left:0;right:0;height:2px;
-  background:var(--orange);
-  pointer-events:none
+#progress{
+  position:absolute;top:0;left:0;height:2px;width:0%;
+  background:var(--grad);background-size:200% 100%;
+  animation:shimmer 4s linear infinite;
+  box-shadow:0 0 12px #ff784788;
+  transition:width .15s ease-out;border-radius:0 2px 2px 0
 }
 .hbtn{
-  width:30px;height:30px;border-radius:var(--r);
-  border:1px solid var(--bd2);background:transparent;color:var(--mu);
+  width:34px;height:34px;border-radius:10px;
+  border:1px solid var(--bd);background:var(--glass);color:var(--mu);
   cursor:pointer;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  transition:background .1s,color .1s
+  transition:background .2s,color .2s,border-color .2s,transform .15s
 }
-.hbtn:hover{background:var(--s2);color:var(--tx)}
-.hbtn svg{width:14px;height:14px}
+.hbtn:hover{background:var(--s2);color:var(--tx);border-color:var(--bd2)}
+.hbtn:active{transform:scale(.92)}
+.hbtn svg{width:15px;height:15px}
 .logo{
-  display:flex;align-items:center;gap:7px;
-  font-family:var(--mono);font-size:13px;font-weight:700;
+  display:flex;align-items:center;gap:9px;
+  font-family:var(--mono);font-size:13.5px;font-weight:700;
   color:var(--tx);text-decoration:none;white-space:nowrap;
   letter-spacing:-0.03em
 }
 .logo-path{color:var(--mu);font-weight:400}
-.logo svg{width:18px;height:18px}
-.ml{margin-left:auto}
-.badge{font-family:var(--mono);font-size:11px;color:var(--mu);letter-spacing:-0.02em}
+.logo svg{width:20px;height:20px;filter:drop-shadow(0 0 8px #f0503355);transition:transform .5s var(--ease)}
+.logo:hover svg{transform:rotate(360deg)}
+.ml{margin-left:auto;display:flex;align-items:center;gap:10px}
+.badge{
+  font-family:var(--mono);font-size:11px;color:var(--mu);letter-spacing:-0.02em;
+  border:1px solid var(--bd);border-radius:99px;padding:3px 12px;
+  background:var(--glass)
+}
+.badge b{color:var(--orange);font-weight:700}
 
-/* LAYOUT */
-.layout{display:flex;height:calc(100vh - var(--tbh))}
+/* ====== LAYOUT ====== */
+.layout{display:flex;height:calc(100vh - var(--tbh));position:relative;z-index:1}
 
-/* SIDEBAR */
+/* ====== SIDEBAR ====== */
 .sb{
   width:var(--sbw);flex-shrink:0;
   position:sticky;top:var(--tbh);height:calc(100vh - var(--tbh));
-  background:var(--sf);border-right:1px solid var(--bd);
+  background:rgba(13,11,20,.6);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-right:1px solid var(--bd);
   display:flex;flex-direction:column;overflow:hidden;
-  transition:width .25s cubic-bezier(.4,0,.2,1)
+  transition:width .35s var(--ease)
 }
 .sb.closed{width:var(--sbwc)}
-
-/* search */
 .sb-srch{
-  padding:8px;border-bottom:1px solid var(--bd);flex-shrink:0;
-  overflow:hidden;transition:max-height .25s,opacity .2s,padding .25s;max-height:50px
+  padding:10px;border-bottom:1px solid var(--bd);flex-shrink:0;
+  overflow:hidden;transition:max-height .3s,opacity .25s,padding .3s;max-height:56px
 }
 .sb.closed .sb-srch{max-height:0;opacity:0;padding:0;pointer-events:none}
 .sb-srch-box{
-  display:flex;align-items:center;gap:6px;
-  background:var(--bg);border:1px solid var(--bd);
-  border-radius:var(--r);padding:5px 9px;
-  transition:border-color .15s
+  display:flex;align-items:center;gap:7px;
+  background:rgba(0,0,0,.35);border:1px solid var(--bd);
+  border-radius:10px;padding:7px 11px;
+  transition:border-color .25s,box-shadow .25s
 }
-.sb-srch-box:focus-within{border-color:var(--orange)}
+.sb-srch-box:focus-within{border-color:#ff784788;box-shadow:0 0 0 3px #ff784722,0 0 18px #ff784722}
 .sb-srch-box svg{color:var(--mu);flex-shrink:0;width:12px;height:12px}
 .sb-srch-box input{
   background:none;border:none;outline:none;color:var(--tx);
-  font-size:11px;width:100%;font-family:var(--mono)
+  font-size:11.5px;width:100%;font-family:var(--mono)
 }
 .sb-srch-box input::placeholder{color:var(--du)}
-
-/* tree */
-.sb-tree{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 0 12px;transition:opacity .2s}
+.kbd{
+  font-family:var(--mono);font-size:9px;color:var(--du);
+  border:1px solid var(--bd);border-radius:5px;padding:1px 6px;flex-shrink:0
+}
+.sb-tree{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 0 14px;transition:opacity .25s}
 .sb.closed .sb-tree{opacity:0;pointer-events:none}
-.sb-tree::-webkit-scrollbar{width:2px}
-.sb-tree::-webkit-scrollbar-thumb{background:var(--bd);border-radius:1px}
+.sb-tree::-webkit-scrollbar{width:3px}
+.sb-tree::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
 
 .tsec-hdr{
-  display:flex;align-items:center;gap:6px;
-  padding:5px 10px;
+  display:flex;align-items:center;gap:7px;
+  padding:7px 12px;margin:1px 6px;border-radius:9px;
   cursor:pointer;user-select:none;
-  transition:background .1s;
-  border-left:2px solid transparent
+  transition:background .2s;
+  position:relative
 }
-.tsec-hdr:hover{background:var(--s2)}
-.tsec-hdr.active{background:var(--s2);border-left-color:var(--sec-color,var(--orange))}
+.tsec-hdr::before{
+  content:'';position:absolute;left:-6px;top:50%;transform:translateY(-50%) scaleY(0);
+  width:3px;height:60%;border-radius:0 3px 3px 0;
+  background:var(--sec-color,var(--orange));
+  transition:transform .25s var(--ease)
+}
+.tsec-hdr:hover{background:var(--glass)}
+.tsec-hdr.active{background:var(--glass)}
+.tsec-hdr.active::before{transform:translateY(-50%) scaleY(1)}
 .tarrow{font-size:7px;color:var(--du);width:8px;flex-shrink:0;
-  display:inline-block;transition:transform .18s;transform:rotate(0)}
+  display:inline-block;transition:transform .25s var(--ease);transform:rotate(0)}
 .tarrow.open{transform:rotate(90deg)}
-.ticon{font-size:11px;flex-shrink:0;opacity:.6}
-.tlabel{font-size:11px;font-weight:500;color:var(--mu);flex:1;white-space:nowrap}
+.ticon{font-size:12px;flex-shrink:0;opacity:.7;transition:transform .25s var(--ease)}
+.tsec-hdr:hover .ticon{transform:scale(1.25)}
+.tlabel{font-size:11.5px;font-weight:600;color:var(--mu);flex:1;white-space:nowrap;transition:color .2s}
 .tsec-hdr:hover .tlabel,.tsec-hdr.active .tlabel{color:var(--tx)}
-.tcount{font-size:9px;color:var(--du);font-family:var(--mono);flex-shrink:0}
-.tchildren{overflow:hidden;transition:max-height .2s ease;max-height:400px}
+.tcount{
+  font-size:9px;color:var(--du);font-family:var(--mono);flex-shrink:0;
+  border:1px solid var(--bd);border-radius:99px;padding:0 6px;min-width:18px;text-align:center
+}
+.tsec-hdr.active .tcount{color:var(--sec-color,var(--orange));border-color:var(--sec-color,var(--orange))}
+.tchildren{overflow:hidden;transition:max-height .3s var(--ease);max-height:400px}
 .tchildren.shut{max-height:0}
 .tcmd{
-  display:flex;align-items:center;gap:5px;
-  padding:3px 10px 3px 22px;
-  border-left:2px solid transparent;
-  cursor:pointer;color:var(--mu);font-size:10px;font-family:var(--mono);
-  transition:color .1s,background .1s;white-space:nowrap
+  display:flex;align-items:center;gap:7px;
+  padding:4px 12px 4px 26px;margin:0 6px;border-radius:7px;
+  cursor:pointer;color:var(--mu);font-size:10.5px;font-family:var(--mono);
+  transition:color .15s,background .15s,padding-left .2s var(--ease);white-space:nowrap
 }
-.tcmd:hover{color:var(--tx);background:var(--s2)}
-.tcmd.on{color:var(--tx);border-left-color:var(--sec-color,var(--orange));background:rgba(240,112,58,.05)}
-.tcmd-dot{width:3px;height:3px;border-radius:50%;flex-shrink:0;background:var(--du);transition:background .1s}
-.tcmd:hover .tcmd-dot,.tcmd.on .tcmd-dot{background:var(--sec-color,var(--orange))}
-
-/* collapsed rail */
-.sb-rail{display:none;flex-direction:column;align-items:center;padding:8px 0;gap:1px}
+.tcmd:hover{color:var(--tx);background:var(--glass);padding-left:30px}
+.tcmd.on{color:var(--tx);background:var(--glass)}
+.tcmd-dot{
+  width:4px;height:4px;border-radius:50%;flex-shrink:0;
+  background:var(--du);transition:background .2s,box-shadow .2s,transform .2s
+}
+.tcmd:hover .tcmd-dot,.tcmd.on .tcmd-dot{
+  background:var(--sec-color,var(--orange));
+  box-shadow:0 0 8px var(--sec-color,var(--orange));
+  transform:scale(1.3)
+}
+.sb-rail{display:none;flex-direction:column;align-items:center;padding:10px 0;gap:3px}
 .sb.closed .sb-tree{display:none}
 .sb.closed .sb-srch{display:none}
 .sb.closed .sb-rail{display:flex}
 .rbtn{
-  width:34px;height:34px;border-radius:var(--r);border:none;background:transparent;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;
-  transition:background .1s;color:var(--mu)
+  width:36px;height:36px;border-radius:10px;border:1px solid transparent;background:transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;
+  transition:background .2s,border-color .2s,transform .15s;color:var(--mu)
 }
-.rbtn:hover{background:var(--s2);color:var(--tx)}
-.rbtn.on{background:var(--s2);color:var(--sec-color,var(--orange))}
+.rbtn:hover{background:var(--glass);border-color:var(--bd);transform:scale(1.1)}
+.rbtn.on{background:var(--glass);border-color:var(--sec-color,var(--orange));color:var(--sec-color,var(--orange))}
 
-/* MAIN */
-.main{flex:1;overflow-y:auto;padding:22px 28px 80px;scroll-behavior:smooth}
-.main::-webkit-scrollbar{width:4px}
-.main::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
-.no-res{display:none;text-align:center;padding:80px 20px;color:var(--mu);font-size:13px;font-family:var(--mono)}
+/* ====== MAIN ====== */
+.main{flex:1;overflow-y:auto;padding:0 32px 100px;scroll-behavior:smooth;position:relative}
+.main::-webkit-scrollbar{width:5px}
+.main::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+.no-res{
+  display:none;text-align:center;padding:90px 20px;color:var(--mu);
+  font-size:13px;font-family:var(--mono)
+}
+.no-res .big{font-size:34px;display:block;margin-bottom:14px;opacity:.5}
 
-/* SECTIONS */
-.section{margin-bottom:52px;scroll-margin-top:16px}
+/* ====== HERO ====== */
+.hero{
+  padding:64px 0 56px;text-align:center;position:relative;
+  animation:fadeUp .9s var(--ease) both
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--mu);border:1px solid var(--bd);border-radius:99px;padding:6px 16px;
+  background:var(--glass);margin-bottom:26px;
+  animation:glowPulse 4s ease-in-out infinite
+}
+.hero-eyebrow .pulse-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 10px var(--green);
+  animation:blink 1.6s steps(1) infinite
+}
+.hero h1{
+  font-size:clamp(40px,6.5vw,72px);font-weight:700;letter-spacing:-.045em;line-height:1.04;
+  margin-bottom:18px
+}
+.hero h1 .grad{
+  background:var(--grad);background-size:220% 220%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shimmer 6s ease-in-out infinite
+}
+.hero-sub{color:var(--mu);font-size:16px;max-width:520px;margin:0 auto 30px;line-height:1.7}
+.hero-term{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:14px;
+  background:rgba(0,0,0,.45);border:1px solid var(--bd);border-radius:12px;
+  padding:13px 22px;box-shadow:0 14px 50px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.03) inset;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)
+}
+.hero-term .dollar{color:var(--orange);font-weight:700}
+.hero-term #typed{color:var(--tx);min-width:1px;text-align:left}
+.hero-term .cursor{
+  width:8px;height:17px;background:var(--orange);border-radius:1px;
+  animation:blink 1.1s steps(1) infinite;box-shadow:0 0 8px var(--orange)
+}
+.hero-stats{
+  display:flex;justify-content:center;gap:34px;margin-top:38px;flex-wrap:wrap
+}
+.hstat{text-align:center}
+.hstat .n{
+  font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:-.04em;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent
+}
+.hstat .l{font-size:10px;color:var(--mu);letter-spacing:.18em;text-transform:uppercase;margin-top:2px}
+
+/* ====== SECTIONS ====== */
+.section{margin-bottom:64px;scroll-margin-top:20px}
 .sec-hdr{
-  display:flex;align-items:center;gap:10px;
-  margin-bottom:18px;padding:16px 0 14px;
-  border-bottom:1px solid var(--bd)
+  display:flex;align-items:center;gap:13px;
+  margin-bottom:22px;padding:18px 0 15px;position:relative;
+  opacity:0;transform:translateY(18px);
+  transition:opacity .7s var(--ease),transform .7s var(--ease)
 }
-.sec-icon{font-size:16px;width:26px;text-align:center;flex-shrink:0}
-.sec-title{font-size:17px;font-weight:700;letter-spacing:-0.025em}
+.section.seen .sec-hdr{opacity:1;transform:none}
+.sec-hdr::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--sec-color,var(--orange)),transparent 70%);
+  transform-origin:left;transform:scaleX(0);
+  transition:transform 1s var(--ease) .15s
+}
+.section.seen .sec-hdr::after{transform:scaleX(1)}
+.sec-icon{
+  font-size:17px;width:42px;height:42px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:12px;background:var(--glass);border:1px solid var(--bd);
+  box-shadow:0 0 22px color-mix(in srgb,var(--sec-color,#ff7847) 16%,transparent)
+}
+.sec-title{font-size:20px;font-weight:700;letter-spacing:-0.03em}
 .sec-sub{font-size:10.5px;color:var(--mu);font-family:var(--mono);margin-top:1px}
-.sec-count{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--du)}
-
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:12px}
-
-/* CARD */
-.card{
-  background:var(--sf);
-  border:1px solid var(--bd);
-  border-left:3px solid var(--sec-color,var(--bd));
-  border-radius:var(--r);
-  overflow:hidden;
-  transition:border-color .1s,background .1s
+.sec-count{
+  margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--du);
+  border:1px solid var(--bd);border-radius:99px;padding:3px 11px
 }
-.card:hover{background:var(--s2);border-top-color:var(--bd2);border-right-color:var(--bd2);border-bottom-color:var(--bd2)}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:16px}
+
+/* ====== CARD ====== */
+.card{
+  --mx:50%;--my:0%;
+  background:var(--sf);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--bd);
+  border-radius:var(--r);
+  overflow:hidden;position:relative;
+  opacity:0;translate:0 30px;
+  transition:
+    opacity .7s var(--ease) var(--d,0s),
+    translate .7s var(--ease) var(--d,0s),
+    transform .3s var(--ease),
+    border-color .3s,box-shadow .3s
+}
+.card.seen{opacity:1;translate:0 0}
+.card:hover{
+  transform:translateY(-4px);
+  border-color:color-mix(in srgb,var(--sec-color,#ff7847) 45%,transparent);
+  box-shadow:
+    0 18px 50px rgba(0,0,0,.5),
+    0 0 36px color-mix(in srgb,var(--sec-color,#ff7847) 13%,transparent)
+}
+.card::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(420px circle at var(--mx) var(--my),
+    color-mix(in srgb,var(--sec-color,#ff7847) 8%,transparent),transparent 65%);
+  opacity:0;transition:opacity .35s
+}
+.card:hover::before{opacity:1}
 .card.hidden{display:none}
 .card-hdr{
-  display:flex;align-items:center;gap:6px;
-  padding:9px 13px;border-bottom:1px solid var(--bd);
-  background:var(--s2)
+  display:flex;align-items:center;gap:8px;
+  padding:12px 16px;border-bottom:1px solid var(--bd);
+  background:rgba(0,0,0,.22);position:relative;z-index:1
 }
 .card-prompt{
   color:var(--sec-color,var(--mu));font-family:var(--mono);
-  font-size:11px;flex-shrink:0;opacity:.55;user-select:none
+  font-size:12px;flex-shrink:0;opacity:.7;user-select:none;
+  text-shadow:0 0 10px var(--sec-color,transparent)
 }
 .card-name{
-  font-size:13px;font-weight:700;font-family:var(--mono);
+  font-size:13.5px;font-weight:700;font-family:var(--mono);
   color:var(--tx);letter-spacing:-0.03em;flex:1
 }
 .card-tag{
-  font-size:9px;font-weight:700;padding:1px 6px;
-  border-radius:1px;font-family:var(--mono);
-  letter-spacing:.06em;border:1px solid;flex-shrink:0
+  font-size:8.5px;font-weight:700;padding:2.5px 9px;
+  border-radius:99px;font-family:var(--mono);
+  letter-spacing:.1em;border:1px solid;flex-shrink:0
 }
-.card-body{padding:11px 13px}
-.card-desc{font-size:12px;color:var(--mu);margin-bottom:10px;line-height:1.65}
+.card-body{padding:14px 16px;position:relative;z-index:1}
+.card-desc{font-size:12.5px;color:var(--mu);margin-bottom:12px;line-height:1.7}
 
-/* DIAGRAM */
+/* ====== DIAGRAM ====== */
 .dw{
-  background:#090807;border:1px solid var(--bd);
-  border-radius:var(--r);padding:10px 12px;margin-bottom:10px;overflow-x:auto
+  background:rgba(0,0,0,.42);border:1px solid var(--bd);
+  border-radius:var(--rs);padding:12px 14px;margin-bottom:12px;overflow-x:auto;
+  position:relative
+}
+.dw::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04)
 }
 .dw svg{display:block}
+/* diagram entrance choreography */
+.dw svg circle{opacity:0;transform-box:fill-box;transform-origin:center;transform:scale(0)}
+.card.seen .dw svg circle{animation:popIn .55s cubic-bezier(.34,1.56,.64,1) .25s forwards}
+.dw svg rect{opacity:0;transform-box:fill-box;transform-origin:center;transform:scale(.7)}
+.card.seen .dw svg rect{animation:rectIn .5s var(--ease) .35s forwards}
+.dw svg text{opacity:0}
+.card.seen .dw svg text{animation:fadeIn .55s ease .55s forwards}
+.dw svg line:not([stroke-dasharray]),
+.dw svg path:not([stroke-dasharray]){stroke-dasharray:600;stroke-dashoffset:600}
+.card.seen .dw svg line:not([stroke-dasharray]),
+.card.seen .dw svg path:not([stroke-dasharray]){animation:drawLine 1s var(--ease) .4s forwards}
+.dw svg line[stroke-dasharray],.dw svg path[stroke-dasharray]{opacity:0}
+.card.seen .dw svg line[stroke-dasharray],
+.card.seen .dw svg path[stroke-dasharray]{animation:fadeIn .6s ease .8s forwards}
+.dw svg marker polygon{opacity:1;animation:none}
+.card.seen .dw svg g.hd{animation:headPulse 2.6s ease-in-out 1.2s infinite}
 
-/* EXAMPLES */
-.exs{display:flex;flex-direction:column;gap:3px}
+/* ====== EXAMPLES ====== */
+.exs{display:flex;flex-direction:column;gap:5px}
 .ex{
   display:flex;align-items:stretch;
-  background:#090807;border:1px solid var(--bd);
-  border-radius:var(--r);overflow:hidden
+  background:rgba(0,0,0,.42);border:1px solid var(--bd);
+  border-radius:var(--rs);overflow:hidden;
+  transition:border-color .2s,transform .2s var(--ease)
 }
+.ex:hover{border-color:color-mix(in srgb,var(--sec-color,#ff7847) 35%,transparent);transform:translateX(3px)}
 .ex-prompt{
-  padding:5px 8px;
+  padding:6px 10px;
   color:var(--sec-color,var(--mu));font-family:var(--mono);
   font-size:10.5px;border-right:1px solid var(--bd);
-  flex-shrink:0;opacity:.5;user-select:none;
+  flex-shrink:0;opacity:.6;user-select:none;
   display:flex;align-items:center
 }
 .ex-code{
-  flex:1;padding:5px 9px;font-family:var(--mono);font-size:10.5px;
-  color:var(--tx);line-height:1.5;word-break:break-all
+  flex:1;padding:6px 11px;font-family:var(--mono);font-size:10.5px;
+  color:var(--tx);line-height:1.55;word-break:break-all
 }
 .ex-note{color:var(--mu)}
 .cpbtn{
-  padding:0 9px;background:transparent;border:none;
+  padding:0 11px;background:transparent;border:none;
   border-left:1px solid var(--bd);cursor:pointer;color:var(--du);
   display:flex;align-items:center;flex-shrink:0;
-  transition:background .1s,color .1s
+  transition:background .2s,color .2s
 }
-.cpbtn:hover{background:var(--s2);color:var(--green)}
+.cpbtn:hover{background:var(--glass);color:var(--green)}
 .cpbtn.done{color:var(--green)}
-.cpbtn svg{width:11px;height:11px}
+.cpbtn svg{width:12px;height:12px;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.cpbtn.done svg{transform:scale(1.25)}
 
-/* TAG COLORS */
-.to{color:#f0703a;background:rgba(240,112,58,.08);border-color:rgba(240,112,58,.2)}
-.tb{color:#5aa4f4;background:rgba(90,164,244,.08);border-color:rgba(90,164,244,.2)}
-.tg{color:#4dc97a;background:rgba(77,201,122,.08);border-color:rgba(77,201,122,.2)}
-.tp{color:#a87ee6;background:rgba(168,126,230,.08);border-color:rgba(168,126,230,.2)}
-.ty{color:#e4aa4c;background:rgba(228,170,76,.08);border-color:rgba(228,170,76,.2)}
-.tr{color:#e55f5f;background:rgba(229,95,95,.08);border-color:rgba(229,95,95,.2)}
-.tc{color:#35b9c6;background:rgba(53,185,198,.08);border-color:rgba(53,185,198,.2)}
-.tk{color:#df7ac5;background:rgba(223,122,197,.08);border-color:rgba(223,122,197,.2)}
-/* BG */
-.bgo{background:rgba(240,112,58,.12)}
-.bgb{background:rgba(90,164,244,.12)}
-.bgg{background:rgba(77,201,122,.12)}
-.bgp{background:rgba(168,126,230,.12)}
-.bgy{background:rgba(228,170,76,.12)}
-.bgr{background:rgba(229,95,95,.12)}
-.bgc{background:rgba(53,185,198,.12)}
-.bgk{background:rgba(223,122,197,.12)}
+/* ====== TAG COLORS ====== */
+.to{color:#ff7847;background:rgba(255,120,71,.1);border-color:rgba(255,120,71,.3)}
+.tb{color:#5aa4f4;background:rgba(90,164,244,.1);border-color:rgba(90,164,244,.3)}
+.tg{color:#4dde8a;background:rgba(77,222,138,.1);border-color:rgba(77,222,138,.3)}
+.tp{color:#b08af2;background:rgba(176,138,242,.1);border-color:rgba(176,138,242,.3)}
+.ty{color:#f0b454;background:rgba(240,180,84,.1);border-color:rgba(240,180,84,.3)}
+.tr{color:#ff6b6b;background:rgba(255,107,107,.1);border-color:rgba(255,107,107,.3)}
+.tc{color:#3cd2e0;background:rgba(60,210,224,.1);border-color:rgba(60,210,224,.3)}
+.tk{color:#f084d2;background:rgba(240,132,210,.1);border-color:rgba(240,132,210,.3)}
+
+/* ====== BACK TO TOP ====== */
+#toTop{
+  position:fixed;right:26px;bottom:26px;z-index:600;
+  width:42px;height:42px;border-radius:50%;
+  border:1px solid var(--bd2);cursor:pointer;
+  background:rgba(26,22,38,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  color:var(--tx);display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transform:translateY(14px) scale(.9);
+  transition:opacity .3s var(--ease),transform .3s var(--ease),box-shadow .3s,border-color .3s;
+  box-shadow:0 10px 30px rgba(0,0,0,.5)
+}
+#toTop.show{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+#toTop:hover{border-color:#ff784788;box-shadow:0 10px 30px rgba(0,0,0,.5),0 0 22px #ff784744}
+#toTop svg{width:16px;height:16px}
 
 .section.all-hidden{display:none}
-@media(max-width:860px){
+
+/* ====== FOOTER ====== */
+.foot{
+  text-align:center;padding:40px 0 0;color:var(--du);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.06em
+}
+.foot .heart{color:var(--red)}
+
+@media(max-width:900px){
   .sb{display:none}
-  .main{padding:14px 12px 60px}
+  .main{padding:0 14px 70px}
   .cards-grid{grid-template-columns:1fr}
+  .hero{padding:44px 0 40px}
+  #toTop{right:16px;bottom:16px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+  .card,.sec-hdr{opacity:1 !important;translate:0 0 !important;transform:none !important}
+  .dw svg circle,.dw svg rect,.dw svg text,.dw svg line,.dw svg path{opacity:1 !important;transform:none !important;stroke-dashoffset:0 !important}
 }
 </style>
 </head>
 <body>
 
+<div class="bg-fx">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
 <div id="tip"></div>
 
 <header class="topbar">
+  <div id="progress"></div>
   <button class="hbtn" id="toggleBtn" title="Toggle sidebar" onclick="toggleSb()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
       <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
@@ -278,7 +483,7 @@ body{
   </button>
   <a class="logo" href="#">
     <svg viewBox="0 0 92 92" fill="none"><path fill="#F05033" d="M90.155 41.965 50.036 1.846a5.918 5.918 0 0 0-8.372 0l-8.328 8.33 10.566 10.566a7.03 7.03 0 0 1 7.23 1.684 7.043 7.043 0 0 1 1.673 7.277l10.183 10.184a7.026 7.026 0 0 1 7.278 1.672 7.044 7.044 0 0 1 0 9.952 7.049 7.049 0 0 1-9.956 0 7.054 7.054 0 0 1-1.528-7.664l-9.5-9.498V59.36a7.044 7.044 0 0 1 1.86 11.29 7.048 7.048 0 0 1-9.955 0 7.044 7.044 0 0 1 0-9.951 7.03 7.03 0 0 1 2.304-1.537V33.926a7.031 7.031 0 0 1-2.304-1.537 7.054 7.054 0 0 1-1.522-7.682L32.016 14.13 1.845 44.297a5.918 5.918 0 0 0 0 8.372L41.964 92.64a5.918 5.918 0 0 0 8.372 0L90.155 52.52a5.918 5.918 0 0 0 0-8.555"/></svg>
-    <span class="logo-path">~/</span>git-cheatsheet
+    <span><span class="logo-path">~/</span>git-cheatsheet</span>
   </a>
   <div class="ml"><span class="badge" id="cmdBadge"></span></div>
 </header>
@@ -289,15 +494,33 @@ body{
       <div class="sb-srch-box">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" id="srchInput" placeholder="search commands..." autocomplete="off" spellcheck="false">
+        <span class="kbd">/</span>
       </div>
     </div>
     <div class="sb-tree" id="sbTree"></div>
     <div class="sb-rail" id="sbRail"></div>
   </nav>
   <main class="main" id="main">
-    <div class="no-res" id="noRes">no commands match your search.</div>
+    <div class="hero">
+      <div class="hero-eyebrow"><span class="pulse-dot"></span>interactive reference</div>
+      <h1>Master <span class="grad">Git</span>,<br>one command at a time.</h1>
+      <p class="hero-sub">Every essential command — visualised with live diagrams, real examples, and one-click copy.</p>
+      <div class="hero-term">
+        <span class="dollar">$</span><span id="typed"></span><span class="cursor"></span>
+      </div>
+      <div class="hero-stats">
+        <div class="hstat"><div class="n" id="statCmds">0</div><div class="l">commands</div></div>
+        <div class="hstat"><div class="n" id="statSecs">0</div><div class="l">sections</div></div>
+        <div class="hstat"><div class="n" id="statExs">0</div><div class="l">examples</div></div>
+      </div>
+    </div>
+    <div class="no-res" id="noRes"><span class="big">&#10067;</span>no commands match your search.</div>
   </main>
 </div>
+
+<button id="toTop" title="Back to top" onclick="scrollTopMain()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
 
 <script>
 // ============================================================
@@ -316,9 +539,9 @@ function svgWrap(w, h, body) {
          + '<polygon points="0,0 7,3.5 0,7" fill="' + col + '"/></marker>';
   };
   var d = '<defs>'
-    + mrk('ah','#4d5566') + mrk('ahg','#4dc97a') + mrk('ahb','#5aa4f4')
-    + mrk('ahc','#35b9c6') + mrk('ahp','#a87ee6') + mrk('ahr','#e55f5f')
-    + mrk('ahk','#df7ac5') + mrk('aho','#f0703a')
+    + mrk('ah','#4d5566') + mrk('ahg','#4dde8a') + mrk('ahb','#5aa4f4')
+    + mrk('ahc','#3cd2e0') + mrk('ahp','#b08af2') + mrk('ahr','#ff6b6b')
+    + mrk('ahk','#f084d2') + mrk('aho','#ff7847')
     + '</defs>';
   return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h
        + '" xmlns="http://www.w3.org/2000/svg" style="font-family:monospace;overflow:visible">'
@@ -384,9 +607,9 @@ function HD(col, row, tip, dy, dx, ox, oy) {
   tip = tip || 'HEAD - current checkout position';
   var p = gxy(col, row, ox, oy);
   var lx = p.x + dx, ly = p.y + dy;
-  return '<g data-tip="' + tip.replace(/"/g, '&quot;') + '">'
+  return '<g class="hd" data-tip="' + tip.replace(/"/g, '&quot;') + '">'
     + '<rect x="' + (lx - 24) + '" y="' + (ly - 9) + '" width="48" height="18"'
-    + ' rx="4" fill="#f0703a"/>'
+    + ' rx="4" fill="#ff7847"/>'
     + '<text x="' + lx + '" y="' + (ly + 4) + '" text-anchor="middle" fill="#fff"'
     + ' font-size="8.5" font-weight="800">HEAD</text></g>';
 }
@@ -429,7 +652,7 @@ function A(x1, y1, x2, y2, color, mid) {
 // ============================================================
 var SECS = [
 {
-  id:'setup', title:'Setup & Config', color:'#f0703a', bg:'bgo', icon:'&#9881;',
+  id:'setup', title:'Setup & Config', color:'#ff7847', bg:'bgo', icon:'&#9881;',
   cmds:[
   {
     name:'git config', id:'cfg',
@@ -444,7 +667,7 @@ var SECS = [
     diag: function() {
       var w = 340, h = 96;
       return svgWrap(w, h,
-        B(6, 8, 150, 78, '#f0703a', '~/.gitconfig', 'Global: applies to every repo on this machine')
+        B(6, 8, 150, 78, '#ff7847', '~/.gitconfig', 'Global: applies to every repo on this machine')
         + T(16, 30, 'user.name = "Ada"', '#e6edf3', 9)
         + T(16, 44, 'user.email = "ada@..."', '#e6edf3', 9)
         + T(16, 58, 'core.editor = code', '#e6edf3', 9)
@@ -469,8 +692,8 @@ var SECS = [
     diag: function() {
       var w = 300, h = 80;
       return svgWrap(w, h,
-        B(8, 10, 106, 60, '#f0703a', 'git help X', 'Opens the full git manual page')
-        + A(118, 40, 156, 40, '#f0703a', 'aho')
+        B(8, 10, 106, 60, '#ff7847', 'git help X', 'Opens the full git manual page')
+        + A(118, 40, 156, 40, '#ff7847', 'aho')
         + B(160, 10, 130, 60, '#5aa4f4', 'man git-X', 'Full manual with all flags and examples')
         + T(8, 76, 'git X -h  ->  quick one-screen synopsis', '#555', 8.5)
       );
@@ -505,7 +728,7 @@ var SECS = [
         + T(174, 36, '.git/  <-- created', '#5aa4f4', 9, 700)
         + T(174, 50, 'src/app.js', '#e6edf3', 9)
         + T(174, 64, 'README.md', '#e6edf3', 9)
-        + T(174, 78, '(tracked)', '#4dc97a', 8)
+        + T(174, 78, '(tracked)', '#4dde8a', 8)
       );
     }
   },
@@ -541,7 +764,7 @@ var SECS = [
 },
 
 {
-  id:'staging', title:'Staging Area', color:'#e4aa4c', bg:'bgy', icon:'&#128203;',
+  id:'staging', title:'Staging Area', color:'#f0b454', bg:'bgy', icon:'&#128203;',
   cmds:[
   {
     name:'git status', id:'status',
@@ -557,14 +780,14 @@ var SECS = [
       return svgWrap(w, h,
         B(6, 6, 96, 90, '#4d5566', 'Working Tree', 'Files on disk you have edited')
         + T(14, 26, 'auth.js', '#e6edf3', 9)
-        + T(14, 38, ' modified &#9679;', '#e4aa4c', 8.5, 700)
+        + T(14, 38, ' modified &#9679;', '#f0b454', 8.5, 700)
         + T(14, 54, 'db.js', '#e6edf3', 9)
         + T(14, 66, ' untracked ??', '#8b949e', 8)
         + T(14, 82, 'style.css', '#e6edf3', 9)
-        + T(14, 94, ' staged &#9733;', '#4dc97a', 8.5, 700)
-        + B(110, 6, 98, 90, '#e4aa4c', 'Stage / Index', 'Snapshot for the next commit')
+        + T(14, 94, ' staged &#9733;', '#4dde8a', 8.5, 700)
+        + B(110, 6, 98, 90, '#f0b454', 'Stage / Index', 'Snapshot for the next commit')
         + T(120, 34, 'style.css', '#e6edf3', 9)
-        + T(120, 46, ' ready &#9733;', '#4dc97a', 8.5, 700)
+        + T(120, 46, ' ready &#9733;', '#4dde8a', 8.5, 700)
         + T(120, 66, '(other files', '#8b949e', 8)
         + T(120, 78, ' not here)', '#8b949e', 8)
         + B(216, 6, 116, 90, '#5aa4f4', 'HEAD commit', 'Last snapshot committed on this branch')
@@ -589,13 +812,13 @@ var SECS = [
       var w = 340, h = 94;
       return svgWrap(w, h,
         B(6, 8, 126, 76, '#4d5566', 'Working Tree', 'Your edited files on disk')
-        + T(18, 32, 'login.js  &#9679; modified', '#e4aa4c', 9)
-        + T(18, 46, 'auth.js   &#9679; modified', '#e4aa4c', 9)
-        + T(18, 68, 'git add login.js', '#e4aa4c', 8, 600)
-        + A(136, 46, 172, 46, '#e4aa4c', 'ah')
-        + T(140, 40, 'stage', '#e4aa4c', 9, 700)
-        + B(176, 8, 156, 76, '#e4aa4c', 'Staging Area', 'These changes will become the next commit')
-        + T(186, 32, 'login.js  &#9733; staged', '#4dc97a', 9, 700)
+        + T(18, 32, 'login.js  &#9679; modified', '#f0b454', 9)
+        + T(18, 46, 'auth.js   &#9679; modified', '#f0b454', 9)
+        + T(18, 68, 'git add login.js', '#f0b454', 8, 600)
+        + A(136, 46, 172, 46, '#f0b454', 'ah')
+        + T(140, 40, 'stage', '#f0b454', 9, 700)
+        + B(176, 8, 156, 76, '#f0b454', 'Staging Area', 'These changes will become the next commit')
+        + T(186, 32, 'login.js  &#9733; staged', '#4dde8a', 9, 700)
         + T(186, 48, 'auth.js   (not yet)', '#8b949e', 9)
         + T(186, 68, 'ready to commit', '#8b949e', 8)
       );
@@ -617,16 +840,16 @@ var SECS = [
         B(6, 6, 90, 84, '#5aa4f4', 'HEAD commit', 'The last committed snapshot')
         + T(16, 44, 'const x = 1', '#8b949e', 8.5)
         + T(16, 56, '(committed)', '#4d5566', 8)
-        + B(104, 6, 106, 40, '#e4aa4c', 'Staged (index)', 'Changes run through git add')
+        + B(104, 6, 106, 40, '#f0b454', 'Staged (index)', 'Changes run through git add')
         + T(116, 30, 'const x = 2', '#e6edf3', 8.5)
         + B(104, 54, 106, 36, '#4d5566', 'Working Tree', 'File currently on disk')
         + T(116, 76, 'const x = 3', '#e6edf3', 8.5)
-        + A(212, 24, 274, 24, '#e4aa4c', 'ah')
-        + T(218, 18, 'git diff --staged', '#e4aa4c', 8, 600)
+        + A(212, 24, 274, 24, '#f0b454', 'ah')
+        + T(218, 18, 'git diff --staged', '#f0b454', 8, 600)
         + A(212, 72, 274, 72, '#4d5566', 'ah')
         + T(218, 66, 'git diff', '#8b949e', 8, 600)
         + B(276, 6, 58, 84, '#4d5566', 'diff', 'The patch output shown in your terminal')
-        + T(290, 48, '+-', '#4dc97a', 14, 700)
+        + T(290, 48, '+-', '#4dde8a', 14, 700)
       );
     }
   },
@@ -646,12 +869,12 @@ var SECS = [
         + T(16, 28, 'src/utils.js', '#e6edf3', 9)
         + T(16, 42, 'src/helpers.js', '#e6edf3', 9)
         + T(16, 56, 'legacy.js', '#e6edf3', 9)
-        + A(150, 44, 182, 44, '#e4aa4c', 'ah')
-        + T(154, 38, 'mv / rm', '#e4aa4c', 9, 700)
-        + B(186, 6, 146, 76, '#e4aa4c', 'Staged', 'Rename/delete staged - just commit')
-        + T(196, 28, 'utils.js -> shared/utils.js', '#4dc97a', 8.5, 700)
+        + A(150, 44, 182, 44, '#f0b454', 'ah')
+        + T(154, 38, 'mv / rm', '#f0b454', 9, 700)
+        + B(186, 6, 146, 76, '#f0b454', 'Staged', 'Rename/delete staged - just commit')
+        + T(196, 28, 'utils.js -> shared/utils.js', '#4dde8a', 8.5, 700)
         + T(196, 44, 'src/helpers.js  (unchanged)', '#e6edf3', 8.5)
-        + T(196, 60, 'legacy.js  (removed)', '#e55f5f', 8.5)
+        + T(196, 60, 'legacy.js  (removed)', '#ff6b6b', 8.5)
       );
     }
   }
@@ -659,7 +882,7 @@ var SECS = [
 },
 
 {
-  id:'commit', title:'Committing', color:'#4dc97a', bg:'bgg', icon:'&#128190;',
+  id:'commit', title:'Committing', color:'#4dde8a', bg:'bgg', icon:'&#128190;',
   cmds:[
   {
     name:'git commit', id:'commit',
@@ -678,17 +901,17 @@ var SECS = [
         + C(0, 1, 'a1b2', '#2d333b', 'commit a1b2')
         + C(1, 1, 'c3d4', '#2d333b', 'commit c3d4 - tip of main')
         + E(0, 1, 1, 1)
-        + L(1, 1, 'main', '#4dc97a', 'branch main points here', -20)
+        + L(1, 1, 'main', '#4dde8a', 'branch main points here', -20)
         + HD(1, 1, 'HEAD - you are on main', 20, 28)
-        + T(8, 92, 'login.js is staged in index', '#e4aa4c', 9)
+        + T(8, 92, 'login.js is staged in index', '#f0b454', 9)
         + DIV(162, 104)
         + T(ox + 8, 11, 'After', '#8b949e', 9, 600)
         + C(0, 1, 'a1b2', '#2d333b', '', ox)
         + C(1, 1, 'c3d4', '#2d333b', '', ox)
-        + C(2, 1, 'e5f6', '#4dc97a', 'NEW commit e5f6 - feat: add login form', ox)
+        + C(2, 1, 'e5f6', '#4dde8a', 'NEW commit e5f6 - feat: add login form', ox)
         + E(0, 1, 1, 1, '#444c56', 'ah', ox)
-        + E(1, 1, 2, 1, '#4dc97a', 'ahg', ox)
-        + L(2, 1, 'main', '#4dc97a', 'main moved forward', -20, 0, ox)
+        + E(1, 1, 2, 1, '#4dde8a', 'ahg', ox)
+        + L(2, 1, 'main', '#4dde8a', 'main moved forward', -20, 0, ox)
         + HD(2, 1, 'HEAD', 20, 28, ox)
       );
     }
@@ -709,20 +932,20 @@ var SECS = [
         T(8, 11, 'Before', '#8b949e', 9, 600)
         + C(0, 1, 'a1b2', '#2d333b', 'commit a1b2')
         + C(1, 1, 'c3d4', '#2d333b', 'commit c3d4')
-        + C(2, 1, 'e5f6', '#e55f5f', 'commit e5f6 - has a typo in message')
+        + C(2, 1, 'e5f6', '#ff6b6b', 'commit e5f6 - has a typo in message')
         + E(0, 1, 1, 1) + E(1, 1, 2, 1)
-        + L(2, 1, 'main', '#4dc97a', '', -20)
+        + L(2, 1, 'main', '#4dde8a', '', -20)
         + HD(2, 1, 'HEAD', 20, 28)
-        + T(8, 92, 'e5f6 has wrong message - will be replaced', '#e55f5f', 9)
+        + T(8, 92, 'e5f6 has wrong message - will be replaced', '#ff6b6b', 9)
         + DIV(162, 104)
         + T(ox + 8, 11, 'After', '#8b949e', 9, 600)
         + C(0, 1, 'a1b2', '#2d333b', '', ox)
         + C(1, 1, 'c3d4', '#2d333b', '', ox)
-        + C(2, 1, 'f7a8', '#4dc97a', 'NEW commit f7a8 - completely replaces e5f6', ox)
+        + C(2, 1, 'f7a8', '#4dde8a', 'NEW commit f7a8 - completely replaces e5f6', ox)
         + E(0, 1, 1, 1, '#444c56', 'ah', ox) + E(1, 1, 2, 1, '#444c56', 'ah', ox)
-        + L(2, 1, 'main', '#4dc97a', 'points to new f7a8', -20, 0, ox)
+        + L(2, 1, 'main', '#4dde8a', 'points to new f7a8', -20, 0, ox)
         + HD(2, 1, 'HEAD', 20, 28, ox)
-        + T(ox + 8, 92, 'e5f6 gone, new hash f7a8', '#4dc97a', 9)
+        + T(ox + 8, 92, 'e5f6 gone, new hash f7a8', '#4dde8a', 9)
       );
     }
   }
@@ -730,7 +953,7 @@ var SECS = [
 },
 
 {
-  id:'branch', title:'Branching', color:'#a87ee6', bg:'bgp', icon:'&#127807;',
+  id:'branch', title:'Branching', color:'#b08af2', bg:'bgp', icon:'&#127807;',
   cmds:[
   {
     name:'git branch', id:'branch',
@@ -752,17 +975,17 @@ var SECS = [
         + C(1, 1, 'c3d4', '#2d333b', 'commit c3d4')
         + C(2, 1, 'e5f6', '#2d333b', 'commit e5f6 - tip of main')
         + E(0, 1, 1, 1) + E(1, 1, 2, 1)
-        + L(2, 1, 'main', '#4dc97a', 'main pointer', -20)
+        + L(2, 1, 'main', '#4dde8a', 'main pointer', -20)
         + HD(2, 1, 'HEAD - on main', 20, 28)
-        + T(8, 104, 'git branch feature/login', '#a87ee6', 9)
+        + T(8, 104, 'git branch feature/login', '#b08af2', 9)
         + DIV(160, 116)
         + T(ox + 8, 11, 'After', '#8b949e', 9, 600)
         + C(0, 1, 'a1b2', '#2d333b', '', ox)
         + C(1, 1, 'c3d4', '#2d333b', '', ox)
         + C(2, 1, 'e5f6', '#2d333b', 'Both branches point here - same commit', ox)
         + E(0, 1, 1, 1, '#444c56', 'ah', ox) + E(1, 1, 2, 1, '#444c56', 'ah', ox)
-        + L(2, 1, 'main', '#4dc97a', 'main pointer', 22, 0, ox)
-        + L(2, 1, 'feature/login', '#a87ee6', 'NEW - same commit, different pointer', -22, 0, ox)
+        + L(2, 1, 'main', '#4dde8a', 'main pointer', 22, 0, ox)
+        + L(2, 1, 'feature/login', '#b08af2', 'NEW - same commit, different pointer', -22, 0, ox)
         + HD(2, 1, 'HEAD still on main', 44, 28, ox)
       );
     }
@@ -785,23 +1008,23 @@ var SECS = [
         + C(0, 1, 'a1b2', '#2d333b', '')
         + C(1, 1, 'c3d4', '#2d333b', '')
         + C(2, 1, 'e5f6', '#2d333b', '')
-        + C(2, 0, 'g7h8', '#a87ee6', 'tip of feature/login')
+        + C(2, 0, 'g7h8', '#b08af2', 'tip of feature/login')
         + E(0, 1, 1, 1) + E(1, 1, 2, 1)
-        + EC(1, 1, 2, 0, '#a87ee6', 'ahp')
-        + L(2, 1, 'main', '#4dc97a', '', -20)
-        + L(2, 0, 'feature/login', '#a87ee6', '', -20)
+        + EC(1, 1, 2, 0, '#b08af2', 'ahp')
+        + L(2, 1, 'main', '#4dde8a', '', -20)
+        + L(2, 0, 'feature/login', '#b08af2', '', -20)
         + HD(2, 1, 'HEAD is on main', 20, 28)
-        + T(8, 108, 'git switch feature/login', '#a87ee6', 9)
+        + T(8, 108, 'git switch feature/login', '#b08af2', 9)
         + DIV(160, 120)
         + T(ox + 8, 11, 'After', '#8b949e', 9, 600)
         + C(0, 1, 'a1b2', '#2d333b', '', ox)
         + C(1, 1, 'c3d4', '#2d333b', '', ox)
         + C(2, 1, 'e5f6', '#2d333b', '', ox)
-        + C(2, 0, 'g7h8', '#a87ee6', 'HEAD moved here - working tree reflects this commit', ox)
+        + C(2, 0, 'g7h8', '#b08af2', 'HEAD moved here - working tree reflects this commit', ox)
         + E(0, 1, 1, 1, '#444c56', 'ah', ox) + E(1, 1, 2, 1, '#444c56', 'ah', ox)
-        + EC(1, 1, 2, 0, '#a87ee6', 'ahp', ox)
-        + L(2, 1, 'main', '#4dc97a', '', 20, 0, ox)
-        + L(2, 0, 'feature/login', '#a87ee6', '', -20, 0, ox)
+        + EC(1, 1, 2, 0, '#b08af2', 'ahp', ox)
+        + L(2, 1, 'main', '#4dde8a', '', 20, 0, ox)
+        + L(2, 0, 'feature/login', '#b08af2', '', -20, 0, ox)
         + HD(2, 0, 'HEAD moved to feature/login', 20, 28, ox)
       );
     }
@@ -821,16 +1044,16 @@ var SECS = [
       var w = 340, h = 100;
       return svgWrap(w, h,
         B(6, 6, 146, 86, '#4d5566', 'Working Tree (dirty)', 'Your uncommitted work in progress')
-        + T(18, 28, 'login.js  modified', '#e4aa4c', 9)
-        + T(18, 42, 'auth.js   modified', '#e4aa4c', 9)
+        + T(18, 28, 'login.js  modified', '#f0b454', 9)
+        + T(18, 42, 'auth.js   modified', '#f0b454', 9)
         + T(18, 56, '(uncommitted WIP)', '#8b949e', 8)
-        + T(18, 76, 'git stash  ->', '#a87ee6', 9, 700)
-        + A(156, 48, 190, 48, '#a87ee6', 'ahp')
-        + T(160, 42, 'stash', '#a87ee6', 9, 700)
-        + B(194, 6, 138, 86, '#a87ee6', 'Stash Stack', 'LIFO stack - stash@{0} is newest')
+        + T(18, 76, 'git stash  ->', '#b08af2', 9, 700)
+        + A(156, 48, 190, 48, '#b08af2', 'ahp')
+        + T(160, 42, 'stash', '#b08af2', 9, 700)
+        + B(194, 6, 138, 86, '#b08af2', 'Stash Stack', 'LIFO stack - stash@{0} is newest')
         + T(204, 28, 'stash@{0}: wip: login', '#e6edf3', 8.5)
         + T(204, 42, 'stash@{1}: old work', '#e6edf3', 8.5)
-        + T(204, 60, 'pop -> apply + drop', '#4dc97a', 8.5)
+        + T(204, 60, 'pop -> apply + drop', '#4dde8a', 8.5)
         + T(204, 74, 'apply -> keep in list', '#8b949e', 8.5)
       );
     }
@@ -839,7 +1062,7 @@ var SECS = [
 },
 
 {
-  id:'merge', title:'Merging & Rebasing', color:'#35b9c6', bg:'bgc', icon:'&#128256;',
+  id:'merge', title:'Merging & Rebasing', color:'#3cd2e0', bg:'bgc', icon:'&#128256;',
   cmds:[
   {
     name:'git merge', id:'merge',
@@ -857,25 +1080,25 @@ var SECS = [
         T(8, 11, 'Fast-forward merge', '#8b949e', 9, 600)
         + C(0, 1, 'a1b2', '#2d333b', '')
         + C(1, 1, 'c3d4', '#2d333b', '')
-        + C(2, 0, 'e5f6', '#35b9c6', 'commit on feature/login')
-        + C(3, 0, 'g7h8', '#35b9c6', 'tip of feature/login')
+        + C(2, 0, 'e5f6', '#3cd2e0', 'commit on feature/login')
+        + C(3, 0, 'g7h8', '#3cd2e0', 'tip of feature/login')
         + E(0, 1, 1, 1)
-        + EC(1, 1, 2, 0, '#35b9c6', 'ahc')
-        + E(2, 0, 3, 0, '#35b9c6', 'ahc')
-        + L(1, 1, 'main', '#4dc97a', 'main is behind - no divergence', -20)
-        + L(3, 0, 'feature/login', '#35b9c6', '', -20)
+        + EC(1, 1, 2, 0, '#3cd2e0', 'ahc')
+        + E(2, 0, 3, 0, '#3cd2e0', 'ahc')
+        + L(1, 1, 'main', '#4dde8a', 'main is behind - no divergence', -20)
+        + L(3, 0, 'feature/login', '#3cd2e0', '', -20)
         + T(8, 116, 'FF: main pointer moves to g7h8 - no new commit needed', '#8b949e', 8.5)
         + T(192, 11, '3-way merge', '#8b949e', 9, 600)
         + C(2, 1, 'a1b2', '#2d333b', 'shared base commit', 80)
         + C(3, 1, 'c3d4', '#2d333b', 'main has new commit', 80)
-        + C(3, 0, 'e5f6', '#35b9c6', 'feature has new commit', 80)
-        + C(4, 0, 'M', '#4dc97a', 'merge commit M - has two parents', 80)
+        + C(3, 0, 'e5f6', '#3cd2e0', 'feature has new commit', 80)
+        + C(4, 0, 'M', '#4dde8a', 'merge commit M - has two parents', 80)
         + E(2, 1, 3, 1, '#444c56', 'ah', 80)
-        + EC(2, 1, 3, 0, '#35b9c6', 'ahc', 80)
-        + E(3, 1, 4, 0, '#4dc97a', 'ahg', 80)
-        + E(3, 0, 4, 0, '#35b9c6', 'ahc', 80)
-        + L(3, 1, 'main', '#4dc97a', '', 22, 0, 80)
-        + L(4, 0, 'M', '#4dc97a', 'merge commit with two parents', -20, 0, 80)
+        + EC(2, 1, 3, 0, '#3cd2e0', 'ahc', 80)
+        + E(3, 1, 4, 0, '#4dde8a', 'ahg', 80)
+        + E(3, 0, 4, 0, '#3cd2e0', 'ahc', 80)
+        + L(3, 1, 'main', '#4dde8a', '', 22, 0, 80)
+        + L(4, 0, 'M', '#4dde8a', 'merge commit with two parents', -20, 0, 80)
       );
     }
   },
@@ -897,25 +1120,25 @@ var SECS = [
         + C(0, 1, 'a1b2', '#2d333b', 'shared base')
         + C(1, 1, 'c3d4', '#2d333b', 'new commit on main')
         + C(2, 1, 'e5f6', '#2d333b', 'another on main')
-        + C(1, 0, 'f1f2', '#35b9c6', 'first commit on feature/login')
-        + C(2, 0, 'g3g4', '#35b9c6', 'second commit on feature/login')
+        + C(1, 0, 'f1f2', '#3cd2e0', 'first commit on feature/login')
+        + C(2, 0, 'g3g4', '#3cd2e0', 'second commit on feature/login')
         + E(0, 1, 1, 1) + E(1, 1, 2, 1)
-        + EC(0, 1, 1, 0, '#35b9c6', 'ahc')
-        + E(1, 0, 2, 0, '#35b9c6', 'ahc')
-        + L(2, 1, 'main', '#4dc97a', '', -20)
-        + L(2, 0, 'feature/login', '#35b9c6', '', -20)
+        + EC(0, 1, 1, 0, '#3cd2e0', 'ahc')
+        + E(1, 0, 2, 0, '#3cd2e0', 'ahc')
+        + L(2, 1, 'main', '#4dde8a', '', -20)
+        + L(2, 0, 'feature/login', '#3cd2e0', '', -20)
         + T(8, 114, 'Commits f1f2 and g3g4 get new hashes: f1f2\' and g3g4\'', '#8b949e', 8.5)
         + DIV(164, 126)
         + T(ox + 8, 11, 'After rebase', '#8b949e', 9, 600)
         + C(0, 1, 'a1b2', '#2d333b', '', ox)
         + C(1, 1, 'c3d4', '#2d333b', '', ox)
         + C(2, 1, 'e5f6', '#2d333b', '', ox)
-        + C(3, 1, "f1'", '#35b9c6', 'f1f2 replayed on top of e5f6 - new hash', ox)
-        + C(4, 1, "g3'", '#35b9c6', 'g3g4 replayed - new hash', ox)
+        + C(3, 1, "f1'", '#3cd2e0', 'f1f2 replayed on top of e5f6 - new hash', ox)
+        + C(4, 1, "g3'", '#3cd2e0', 'g3g4 replayed - new hash', ox)
         + E(0, 1, 1, 1, '#444c56', 'ah', ox) + E(1, 1, 2, 1, '#444c56', 'ah', ox)
-        + E(2, 1, 3, 1, '#35b9c6', 'ahc', ox) + E(3, 1, 4, 1, '#35b9c6', 'ahc', ox)
-        + L(2, 1, 'main', '#4dc97a', '', 20, 0, ox)
-        + L(4, 1, 'feature/login', '#35b9c6', '', -20, 0, ox)
+        + E(2, 1, 3, 1, '#3cd2e0', 'ahc', ox) + E(3, 1, 4, 1, '#3cd2e0', 'ahc', ox)
+        + L(2, 1, 'main', '#4dde8a', '', 20, 0, ox)
+        + L(4, 1, 'feature/login', '#3cd2e0', '', -20, 0, ox)
       );
     }
   },
@@ -935,20 +1158,20 @@ var SECS = [
         C(0, 1, 'a1b2', '#2d333b', '')
         + C(1, 1, 'c3d4', '#2d333b', '')
         + C(2, 1, 'e5f6', '#2d333b', '')
-        + C(1, 0, 'F', '#35b9c6', 'This commit on feature/login - we want to copy it to main')
+        + C(1, 0, 'F', '#3cd2e0', 'This commit on feature/login - we want to copy it to main')
         + C(2, 0, 'g7h8', '#2d333b', '')
         + E(0, 1, 1, 1) + E(1, 1, 2, 1)
-        + EC(1, 1, 1, 0, '#35b9c6', 'ahc') + E(1, 0, 2, 0)
-        + L(2, 1, 'main', '#4dc97a', '', -20)
+        + EC(1, 1, 1, 0, '#3cd2e0', 'ahc') + E(1, 0, 2, 0)
+        + L(2, 1, 'main', '#4dde8a', '', -20)
         + HD(2, 1, 'HEAD on main', 20, 28)
-        + L(2, 0, 'feature/login', '#35b9c6', '', -20)
+        + L(2, 0, 'feature/login', '#3cd2e0', '', -20)
         + T(8, 116, 'cherry-pick F  ->  copies its diff onto main as a new commit F\'', '#8b949e', 8.5)
-        + C(3, 1, "F'", '#35b9c6', 'Cherry-picked copy - same diff, new hash')
-        + E(2, 1, 3, 1, '#35b9c6', 'ahc')
-        + L(3, 1, 'main', '#4dc97a', '', -20)
+        + C(3, 1, "F'", '#3cd2e0', 'Cherry-picked copy - same diff, new hash')
+        + E(2, 1, 3, 1, '#3cd2e0', 'ahc')
+        + L(3, 1, 'main', '#4dde8a', '', -20)
         + HD(3, 1, 'HEAD', 20, 28)
-        + '<path d="M' + (26 + U) + ' ' + 26 + ' C' + (26 + U + 50) + ' 0 ' + (26 + U * 3 - 50) + ' 0 ' + (26 + U * 3 - R - 4) + ' ' + 26 + '" fill="none" stroke="#35b9c6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ahc)"/>'
-        + T(26 + U + 30, 6, 'copy', '#35b9c6', 8, 700)
+        + '<path d="M' + (26 + U) + ' ' + 26 + ' C' + (26 + U + 50) + ' 0 ' + (26 + U * 3 - 50) + ' 0 ' + (26 + U * 3 - R - 4) + ' ' + 26 + '" fill="none" stroke="#3cd2e0" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ahc)"/>'
+        + T(26 + U + 30, 6, 'copy', '#3cd2e0', 8, 700)
       );
     }
   }
@@ -974,7 +1197,7 @@ var SECS = [
         B(6, 6, 144, 76, '#4d5566', 'Local repo', 'Your machine - .git/config lists remotes')
         + T(16, 28, 'remote: origin', '#5aa4f4', 9)
         + T(16, 40, ' -> github.com/org/repo', '#8b949e', 8)
-        + T(16, 54, 'remote: upstream', '#a87ee6', 9)
+        + T(16, 54, 'remote: upstream', '#b08af2', 9)
         + T(16, 66, ' -> github.com/upstream/repo', '#8b949e', 8)
         + A(154, 44, 186, 44, '#4d5566', 'ah')
         + B(190, 6, 142, 76, '#5aa4f4', 'GitHub', 'Remote server hosting the repo')
@@ -1000,7 +1223,7 @@ var SECS = [
         B(6, 6, 116, 86, '#5aa4f4', 'origin (remote)', 'Server side - has commits you do not have')
         + T(16, 28, 'a1b2', '#e6edf3', 9) + T(16, 42, 'c3d4', '#e6edf3', 9)
         + T(16, 56, 'e5f6', '#e6edf3', 9)
-        + T(16, 70, 'g7h8  <- NEW', '#4dc97a', 9, 700)
+        + T(16, 70, 'g7h8  <- NEW', '#4dde8a', 9, 700)
         + A(126, 50, 165, 50, '#5aa4f4', 'ahb')
         + T(130, 44, 'fetch', '#5aa4f4', 9, 700)
         + B(170, 6, 162, 86, '#4d5566', 'Local', 'Your local repo after fetch')
@@ -1027,12 +1250,12 @@ var SECS = [
         B(6, 6, 116, 86, '#5aa4f4', 'origin/main', 'Remote has commits you do not have')
         + T(18, 46, 'g7h8 (new commit)', '#e6edf3', 9)
         + A(126, 32, 164, 20, '#5aa4f4', 'ahb')
-        + A(126, 66, 164, 78, '#4dc97a', 'ahg')
+        + A(126, 66, 164, 78, '#4dde8a', 'ahg')
         + T(130, 26, '1. fetch', '#5aa4f4', 9, 700)
-        + T(130, 62, '2. merge', '#4dc97a', 9, 700)
+        + T(130, 62, '2. merge', '#4dde8a', 9, 700)
         + B(168, 6, 80, 38, '#4d5566', 'origin/main', 'Remote-tracking ref updated')
         + T(180, 30, 'updated', '#8b949e', 8)
-        + B(168, 54, 80, 38, '#4dc97a', 'local main', 'Your branch now has g7h8')
+        + B(168, 54, 80, 38, '#4dde8a', 'local main', 'Your branch now has g7h8')
         + T(176, 76, 'merged', '#e6edf3', 9, 700)
         + T(6, 96, 'pull = fetch + merge  |  pull --rebase = fetch + rebase', '#555', 8.5)
       );
@@ -1054,9 +1277,9 @@ var SECS = [
       return svgWrap(w, h,
         B(6, 6, 150, 88, '#4d5566', 'Local repo', 'Your machine with new commits to share')
         + C(0, 1, 'a1b2', '#2d333b', '')
-        + C(1, 1, 'e5f6', '#4dc97a', 'new commit to push')
-        + E(0, 1, 1, 1, '#4dc97a', 'ahg')
-        + L(1, 1, 'main', '#4dc97a', '', -20)
+        + C(1, 1, 'e5f6', '#4dde8a', 'new commit to push')
+        + E(0, 1, 1, 1, '#4dde8a', 'ahg')
+        + L(1, 1, 'main', '#4dde8a', '', -20)
         + HD(1, 1, 'HEAD', 20, 28)
         + A(160, 50, 196, 50, '#5aa4f4', 'ahb')
         + T(164, 44, 'push', '#5aa4f4', 9, 700)
@@ -1072,7 +1295,7 @@ var SECS = [
 },
 
 {
-  id:'undo', title:'Undoing Changes', color:'#e55f5f', bg:'bgr', icon:'&#8617;',
+  id:'undo', title:'Undoing Changes', color:'#ff6b6b', bg:'bgr', icon:'&#8617;',
   cmds:[
   {
     name:'git restore', id:'restore',
@@ -1090,19 +1313,19 @@ var SECS = [
         B(6, 6, 90, 86, '#5aa4f4', 'HEAD commit', 'Last committed version of each file')
         + T(16, 44, 'auth.js v1', '#e6edf3', 9)
         + T(16, 58, '(committed)', '#4d5566', 8)
-        + B(104, 6, 108, 40, '#e4aa4c', 'Staged (index)', 'Currently staged version')
+        + B(104, 6, 108, 40, '#f0b454', 'Staged (index)', 'Currently staged version')
         + T(116, 30, 'auth.js v2', '#e6edf3', 9)
-        + B(104, 54, 108, 38, '#e55f5f', 'Working Tree', 'File on disk right now')
+        + B(104, 54, 108, 38, '#ff6b6b', 'Working Tree', 'File on disk right now')
         + T(116, 76, 'auth.js v3', '#e6edf3', 9)
-        + A(214, 26, 270, 26, '#e4aa4c', 'ah')
-        + T(220, 20, 'restore --staged', '#e4aa4c', 8, 600)
+        + A(214, 26, 270, 26, '#f0b454', 'ah')
+        + T(220, 20, 'restore --staged', '#f0b454', 8, 600)
         + T(220, 32, '(un-stages v2)', '#8b949e', 8)
-        + A(214, 74, 270, 74, '#e55f5f', 'ahr')
-        + T(220, 68, 'restore (no flag)', '#e55f5f', 8, 600)
+        + A(214, 74, 270, 74, '#ff6b6b', 'ahr')
+        + T(220, 68, 'restore (no flag)', '#ff6b6b', 8, 600)
         + T(220, 80, '(discards v3)', '#8b949e', 8)
         + B(272, 6, 60, 86, '#4d5566', 'Result', 'File reverts to v1')
         + T(290, 48, 'v1', '#e6edf3', 12, 700)
-        + T(286, 60, 'restored', '#4dc97a', 8, 600)
+        + T(286, 60, 'restored', '#4dde8a', 8, 600)
       );
     }
   },
@@ -1123,20 +1346,20 @@ var SECS = [
         T(8, 11, 'Before', '#8b949e', 9, 600)
         + C(0, 1, 'a1b2', '#2d333b', '')
         + C(1, 1, 'c3d4', '#2d333b', '')
-        + C(2, 1, 'e5f6', '#e55f5f', 'e5f6 - the commit we want to undo')
+        + C(2, 1, 'e5f6', '#ff6b6b', 'e5f6 - the commit we want to undo')
         + E(0, 1, 1, 1) + E(1, 1, 2, 1)
-        + L(2, 1, 'main', '#4dc97a', '', -20)
+        + L(2, 1, 'main', '#4dde8a', '', -20)
         + HD(2, 1, 'HEAD on main', 20, 28)
-        + T(8, 88, '--soft   : changes remain staged', '#e4aa4c', 8.5, 600)
+        + T(8, 88, '--soft   : changes remain staged', '#f0b454', 8.5, 600)
         + T(8, 100, '--mixed  : changes remain, unstaged', '#8b949e', 8.5)
-        + T(8, 112, '--hard   : changes DELETED', '#e55f5f', 8.5, 600)
+        + T(8, 112, '--hard   : changes DELETED', '#ff6b6b', 8.5, 600)
         + DIV(162, 124)
         + T(ox + 8, 11, 'After  git reset HEAD~1', '#8b949e', 9, 600)
         + C(0, 1, 'a1b2', '#2d333b', '', ox)
-        + C(1, 1, 'c3d4', '#4dc97a', 'HEAD and main moved here', ox)
+        + C(1, 1, 'c3d4', '#4dde8a', 'HEAD and main moved here', ox)
         + C(2, 1, 'e5f6', '#4d5566', 'still exists but unreachable', ox)
         + E(0, 1, 1, 1, '#444c56', 'ah', ox) + E(1, 1, 2, 1, '#4d5566', 'ah', ox)
-        + L(1, 1, 'main', '#4dc97a', '', 22, 0, ox)
+        + L(1, 1, 'main', '#4dde8a', '', 22, 0, ox)
         + HD(1, 1, 'HEAD', 22, 28, ox)
       );
     }
@@ -1156,22 +1379,22 @@ var SECS = [
       return svgWrap(w, h,
         T(8, 11, 'Before', '#8b949e', 9, 600)
         + C(0, 1, 'a1b2', '#2d333b', '')
-        + C(1, 1, 'c3d4', '#e55f5f', 'c3d4 - the bad commit')
+        + C(1, 1, 'c3d4', '#ff6b6b', 'c3d4 - the bad commit')
         + C(2, 1, 'e5f6', '#2d333b', '')
         + E(0, 1, 1, 1) + E(1, 1, 2, 1)
-        + L(2, 1, 'main', '#4dc97a', '', -20)
+        + L(2, 1, 'main', '#4dde8a', '', -20)
         + HD(2, 1, 'HEAD', 20, 28)
-        + T(26 + U, 8, '<-- bad commit', '#e55f5f', 8.5)
+        + T(26 + U, 8, '<-- bad commit', '#ff6b6b', 8.5)
         + T(8, 92, 'git revert c3d4  ->  adds new commit R that inverts c3d4', '#8b949e', 8.5)
         + DIV(164, 104)
         + T(ox + 8, 11, 'After', '#8b949e', 9, 600)
         + C(0, 1, 'a1b2', '#2d333b', '', ox)
-        + C(1, 1, 'c3d4', '#e55f5f', 'still here - history not rewritten', ox)
+        + C(1, 1, 'c3d4', '#ff6b6b', 'still here - history not rewritten', ox)
         + C(2, 1, 'e5f6', '#2d333b', '', ox)
-        + C(3, 1, 'R', '#4dc97a', 'revert commit - cancels out c3d4', ox)
+        + C(3, 1, 'R', '#4dde8a', 'revert commit - cancels out c3d4', ox)
         + E(0, 1, 1, 1, '#444c56', 'ah', ox) + E(1, 1, 2, 1, '#444c56', 'ah', ox)
-        + E(2, 1, 3, 1, '#4dc97a', 'ahg', ox)
-        + L(3, 1, 'main', '#4dc97a', '', -20, 0, ox)
+        + E(2, 1, 3, 1, '#4dde8a', 'ahg', ox)
+        + L(3, 1, 'main', '#4dde8a', '', -20, 0, ox)
         + HD(3, 1, 'HEAD', 20, 28, ox)
       );
     }
@@ -1189,13 +1412,13 @@ var SECS = [
       var w = 340, h = 92;
       return svgWrap(w, h,
         B(6, 6, 150, 78, '#4d5566', 'Before', 'Working tree with tracked and untracked files')
-        + T(18, 28, 'src/   (tracked)', '#4dc97a', 9)
-        + T(18, 42, 'dist/  (untracked)', '#e55f5f', 9)
-        + T(18, 56, 'temp.log (untracked)', '#e55f5f', 9)
-        + T(18, 70, '.env   (gitignored)', '#e4aa4c', 9)
-        + A(160, 44, 192, 44, '#e55f5f', 'ahr')
-        + T(164, 38, 'clean -fdx', '#e55f5f', 9, 700)
-        + B(196, 6, 136, 78, '#4dc97a', 'After', 'Only tracked files remain')
+        + T(18, 28, 'src/   (tracked)', '#4dde8a', 9)
+        + T(18, 42, 'dist/  (untracked)', '#ff6b6b', 9)
+        + T(18, 56, 'temp.log (untracked)', '#ff6b6b', 9)
+        + T(18, 70, '.env   (gitignored)', '#f0b454', 9)
+        + A(160, 44, 192, 44, '#ff6b6b', 'ahr')
+        + T(164, 38, 'clean -fdx', '#ff6b6b', 9, 700)
+        + B(196, 6, 136, 78, '#4dde8a', 'After', 'Only tracked files remain')
         + T(206, 28, 'src/  unchanged', '#e6edf3', 9)
         + T(206, 42, 'dist/  deleted', '#8b949e', 9)
         + T(206, 56, 'temp.log deleted', '#8b949e', 9)
@@ -1207,7 +1430,7 @@ var SECS = [
 },
 
 {
-  id:'history', title:'Inspection & History', color:'#e4aa4c', bg:'bgy', icon:'&#128269;',
+  id:'history', title:'Inspection & History', color:'#f0b454', bg:'bgy', icon:'&#128269;',
   cmds:[
   {
     name:'git log', id:'log',
@@ -1226,15 +1449,15 @@ var SECS = [
         C(0, 1, 'a1b2', '#2d333b', '')
         + C(1, 1, 'c3d4', '#2d333b', '')
         + C(2, 1, 'e5f6', '#2d333b', '')
-        + C(1, 0, 'f1f2', '#35b9c6', '')
-        + C(2, 0, 'g3g4', '#35b9c6', '')
-        + C(3, 0, 'h5h6', '#4dc97a', '')
+        + C(1, 0, 'f1f2', '#3cd2e0', '')
+        + C(2, 0, 'g3g4', '#3cd2e0', '')
+        + C(3, 0, 'h5h6', '#4dde8a', '')
         + E(0, 1, 1, 1) + E(1, 1, 2, 1)
-        + EC(1, 1, 1, 0, '#35b9c6', 'ahc')
-        + E(1, 0, 2, 0, '#35b9c6', 'ahc')
-        + E(2, 0, 3, 0, '#4dc97a', 'ahg')
-        + L(2, 1, 'main', '#4dc97a', '', -20)
-        + L(3, 0, 'feature/login', '#35b9c6', '', -20)
+        + EC(1, 1, 1, 0, '#3cd2e0', 'ahc')
+        + E(1, 0, 2, 0, '#3cd2e0', 'ahc')
+        + E(2, 0, 3, 0, '#4dde8a', 'ahg')
+        + L(2, 1, 'main', '#4dde8a', '', -20)
+        + L(3, 0, 'feature/login', '#3cd2e0', '', -20)
         + HD(3, 0, 'HEAD', 20, 28)
         + T(8, 106, 'git log --oneline --graph --all  shows the ASCII graph above', '#8b949e', 8.5)
       );
@@ -1253,15 +1476,15 @@ var SECS = [
     diag: function() {
       var w = 340, h = 92;
       return svgWrap(w, h,
-        C(1, 1, 'e5f6', '#4dc97a', 'commit e5f6 - most recent commit')
-        + L(1, 1, 'HEAD', '#f0703a', 'HEAD - you are here', 20, 2)
-        + A(26 + U + R + 2, 26 + U, 210, 50, '#e4aa4c', 'ah')
-        + B(212, 8, 120, 76, '#e4aa4c', 'git show output', 'Full diff and metadata for this commit')
+        C(1, 1, 'e5f6', '#4dde8a', 'commit e5f6 - most recent commit')
+        + L(1, 1, 'HEAD', '#ff7847', 'HEAD - you are here', 20, 2)
+        + A(26 + U + R + 2, 26 + U, 210, 50, '#f0b454', 'ah')
+        + B(212, 8, 120, 76, '#f0b454', 'git show output', 'Full diff and metadata for this commit')
         + T(222, 28, 'commit e5f6...', '#e6edf3', 9, 600)
         + T(222, 40, 'Author: Ada L.', '#e6edf3', 8.5)
         + T(222, 52, 'Date: 2024-06-01', '#8b949e', 8)
-        + T(222, 64, '+ added login()', '#4dc97a', 8.5)
-        + T(222, 76, '- removed old()', '#e55f5f', 8.5)
+        + T(222, 64, '+ added login()', '#4dde8a', 8.5)
+        + T(222, 76, '- removed old()', '#ff6b6b', 8.5)
       );
     }
   },
@@ -1280,8 +1503,8 @@ var SECS = [
       return svgWrap(w, h,
         B(6, 6, 328, 76, '#4d5566', 'git blame auth.js', 'Each line annotated with hash, author, date')
         + T(16, 26, 'a1b2 (Ada  2024-01-10)  const login = () => {', '#e6edf3', 9)
-        + T(16, 40, 'c3d4 (Bob  2024-03-22)    return fetch("/api/auth")', '#e4aa4c', 9)
-        + T(16, 54, 'e5f6 (Ada  2024-05-01)      .then(r => r.json())', '#4dc97a', 9)
+        + T(16, 40, 'c3d4 (Bob  2024-03-22)    return fetch("/api/auth")', '#f0b454', 9)
+        + T(16, 54, 'e5f6 (Ada  2024-05-01)      .then(r => r.json())', '#4dde8a', 9)
         + T(16, 68, 'c3d4 (Bob  2024-03-22)  }', '#e6edf3', 9)
       );
     }
@@ -1300,8 +1523,8 @@ var SECS = [
       var w = 340, h = 94;
       return svgWrap(w, h,
         B(6, 6, 328, 80, '#4d5566', 'git reflog', 'Every HEAD movement - nothing is truly lost')
-        + T(16, 24, 'e5f6 HEAD@{0}: commit: feat: add login form', '#4dc97a', 8.5, 700)
-        + T(16, 38, 'c3d4 HEAD@{1}: rebase finished: onto main', '#e4aa4c', 8.5)
+        + T(16, 24, 'e5f6 HEAD@{0}: commit: feat: add login form', '#4dde8a', 8.5, 700)
+        + T(16, 38, 'c3d4 HEAD@{1}: rebase finished: onto main', '#f0b454', 8.5)
         + T(16, 52, 'a1b2 HEAD@{2}: checkout: moving from feature to main', '#8b949e', 8.5)
         + T(16, 66, 'f1f2 HEAD@{3}: reset: moving to f1f2', '#8b949e', 8.5)
         + T(16, 80, '<-- use HEAD@{n} with reset to undo any of these moves', '#555', 8)
@@ -1312,7 +1535,7 @@ var SECS = [
 },
 
 {
-  id:'advanced', title:'Tags & Advanced', color:'#df7ac5', bg:'bgk', icon:'&#128640;',
+  id:'advanced', title:'Tags & Advanced', color:'#f084d2', bg:'bgk', icon:'&#128640;',
   cmds:[
   {
     name:'git tag', id:'tag',
@@ -1335,14 +1558,14 @@ var SECS = [
         + C(3, 1, 'g7h8', '#2d333b', 'This commit is tagged v1.2.0')
         + C(4, 1, 'i9j0', '#2d333b', '')
         + E(0, 1, 1, 1) + E(1, 1, 2, 1) + E(2, 1, 3, 1) + E(3, 1, 4, 1)
-        + L(4, 1, 'main', '#4dc97a', '', -20)
+        + L(4, 1, 'main', '#4dde8a', '', -20)
         + HD(4, 1, 'HEAD', 20, 28)
-        + T(p1.x - 18, 8, 'v1.0.0', '#df7ac5', 9, 700)
-        + T(p3.x - 18, 8, 'v1.2.0', '#df7ac5', 9, 700)
-        + '<line x1="' + p1.x + '" y1="12" x2="' + p1.x + '" y2="' + (26 + U - R - 2) + '" stroke="#df7ac5" stroke-width="1.5" stroke-dasharray="4,3"/>'
-        + '<line x1="' + p3.x + '" y1="12" x2="' + p3.x + '" y2="' + (26 + U - R - 2) + '" stroke="#df7ac5" stroke-width="1.5" stroke-dasharray="4,3"/>'
-        + B(6, 82, 152, 14, '#df7ac5', 'lightweight: just a pointer', '')
-        + B(164, 82, 168, 14, '#a87ee6', 'annotated -a: includes tagger + message', '')
+        + T(p1.x - 18, 8, 'v1.0.0', '#f084d2', 9, 700)
+        + T(p3.x - 18, 8, 'v1.2.0', '#f084d2', 9, 700)
+        + '<line x1="' + p1.x + '" y1="12" x2="' + p1.x + '" y2="' + (26 + U - R - 2) + '" stroke="#f084d2" stroke-width="1.5" stroke-dasharray="4,3"/>'
+        + '<line x1="' + p3.x + '" y1="12" x2="' + p3.x + '" y2="' + (26 + U - R - 2) + '" stroke="#f084d2" stroke-width="1.5" stroke-dasharray="4,3"/>'
+        + B(6, 82, 152, 14, '#f084d2', 'lightweight: just a pointer', '')
+        + B(164, 82, 168, 14, '#b08af2', 'annotated -a: includes tagger + message', '')
       );
     }
   },
@@ -1360,16 +1583,16 @@ var SECS = [
     diag: function() {
       var w = 340, h = 102;
       return svgWrap(w, h,
-        C(0, 1, 'OK', '#4dc97a', 'GOOD - bug is not present here')
-        + C(1, 1, '?', '#e4aa4c', 'UNKNOWN - bisect tests here first (midpoint)')
-        + C(2, 1, '?', '#e4aa4c', 'UNKNOWN')
-        + C(3, 1, '?', '#e4aa4c', 'UNKNOWN')
-        + C(4, 1, 'BAD', '#e55f5f', 'BAD - bug is present here')
+        C(0, 1, 'OK', '#4dde8a', 'GOOD - bug is not present here')
+        + C(1, 1, '?', '#f0b454', 'UNKNOWN - bisect tests here first (midpoint)')
+        + C(2, 1, '?', '#f0b454', 'UNKNOWN')
+        + C(3, 1, '?', '#f0b454', 'UNKNOWN')
+        + C(4, 1, 'BAD', '#ff6b6b', 'BAD - bug is present here')
         + E(0, 1, 1, 1) + E(1, 1, 2, 1) + E(2, 1, 3, 1) + E(3, 1, 4, 1)
-        + T(26 - 8, 66, 'good', '#4dc97a', 8, 700)
-        + T(26 + U * 4 - 10, 66, 'bad', '#e55f5f', 8, 700)
-        + T(26 + U * 2 - 10, 70, '<-- test', '#e4aa4c', 8)
-        + '<line x1="' + (26 + U * 2) + '" y1="73" x2="' + (26 + U * 2) + '" y2="82" stroke="#e4aa4c" stroke-width="1.5"/>'
+        + T(26 - 8, 66, 'good', '#4dde8a', 8, 700)
+        + T(26 + U * 4 - 10, 66, 'bad', '#ff6b6b', 8, 700)
+        + T(26 + U * 2 - 10, 70, '<-- test', '#f0b454', 8)
+        + '<line x1="' + (26 + U * 2) + '" y1="73" x2="' + (26 + U * 2) + '" y2="82" stroke="#f0b454" stroke-width="1.5"/>'
         + T(8, 96, 'Bisect tests the midpoint each round -> finds bug in O(log n) steps', '#8b949e', 8.5)
       );
     }
@@ -1391,9 +1614,9 @@ var SECS = [
         + T(18, 56, 'objects', '#8b949e', 9)
         + A(100, 30, 140, 22, '#4d5566', 'ah')
         + A(100, 60, 140, 70, '#4d5566', 'ah')
-        + B(144, 6, 88, 30, '#4dc97a', './ (main branch)', 'Primary working directory')
+        + B(144, 6, 88, 30, '#4dde8a', './ (main branch)', 'Primary working directory')
         + T(156, 26, 'main', '#e6edf3', 9)
-        + B(144, 52, 88, 30, '#a87ee6', '../hotfix-42', 'Secondary working directory')
+        + B(144, 52, 88, 30, '#b08af2', '../hotfix-42', 'Secondary working directory')
         + T(156, 72, 'hotfix/bug-42', '#e6edf3', 8.5)
         + T(8, 86, 'Both directories share commits - no duplication of history', '#555', 8.5)
       );
@@ -1411,13 +1634,13 @@ var SECS = [
     diag: function() {
       var w = 340, h = 90;
       return svgWrap(w, h,
-        B(6, 6, 148, 76, '#4dc97a', 'my-app (parent repo)', 'Main project with an embedded submodule')
+        B(6, 6, 148, 76, '#4dde8a', 'my-app (parent repo)', 'Main project with an embedded submodule')
         + T(18, 28, 'src/', '#e6edf3', 9)
-        + T(18, 42, 'libs/ui-lib/  <--', '#a87ee6', 9, 700)
+        + T(18, 42, 'libs/ui-lib/  <--', '#b08af2', 9, 700)
         + T(18, 56, '.gitmodules', '#e6edf3', 9)
         + T(18, 70, '(pinned SHA: abc123)', '#8b949e', 8)
         + A(158, 44, 192, 44, '#4d5566', 'ah')
-        + B(196, 6, 136, 76, '#a87ee6', 'ui-lib (separate repo)', 'Own .git, own history')
+        + B(196, 6, 136, 76, '#b08af2', 'ui-lib (separate repo)', 'Own .git, own history')
         + T(206, 28, 'own .git folder', '#e6edf3', 9)
         + T(206, 42, 'own commit history', '#e6edf3', 9)
         + T(206, 56, 'pinned to abc123', '#8b949e', 8)
@@ -1487,6 +1710,8 @@ function he(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+var TOTAL_EX = 0;
+
 function buildMain() {
   var main = document.getElementById('main');
   var total = 0;
@@ -1496,9 +1721,10 @@ function buildMain() {
     total += s.cmds.length;
     var cards = '';
 
-    s.cmds.forEach(function(cmd) {
+    s.cmds.forEach(function(cmd, ci) {
       var exHtml = '';
       cmd.ex.forEach(function(e) {
+        TOTAL_EX++;
         exHtml += '<div class="ex">'
                 + '<div class="ex-prompt">$</div>'
                 + '<div class="ex-code">' + he(e.c)
@@ -1507,7 +1733,7 @@ function buildMain() {
                 + '</div>';
       });
 
-      cards += '<div class="card" id="card-' + cmd.id + '" style="--sec-color:' + s.color + '" data-keys="' + he(cmd.name) + ' ' + he(cmd.desc) + ' ' + he(cmd.tag) + '">'
+      cards += '<div class="card" id="card-' + cmd.id + '" style="--sec-color:' + s.color + ';--d:' + ((ci % 4) * 0.08) + 's" data-keys="' + he(cmd.name) + ' ' + he(cmd.desc) + ' ' + he(cmd.tag) + '">'
              + '<div class="card-hdr">'
              + '<span class="card-prompt">$</span>'
              + '<span class="card-name">' + he(cmd.name) + '</span>'
@@ -1520,7 +1746,7 @@ function buildMain() {
              + '</div></div>';
     });
 
-    html += '<section class="section" id="sec-' + s.id + '" data-sid="' + s.id + '">'
+    html += '<section class="section" id="sec-' + s.id + '" data-sid="' + s.id + '" style="--sec-color:' + s.color + '">'
           + '<div class="sec-hdr">'
           + '<div class="sec-icon" style="color:' + s.color + '">' + s.icon + '</div>'
           + '<div style="flex:1">'
@@ -1533,8 +1759,11 @@ function buildMain() {
           + '</section>';
   });
 
+  html += '<div class="foot">crafted with <span class="heart">&#10084;</span> &amp; git &mdash; hover the diagrams for details</div>';
+
   main.innerHTML += html;
-  document.getElementById('cmdBadge').textContent = total + ' commands';
+  document.getElementById('cmdBadge').innerHTML = '<b>' + total + '</b> commands';
+  return total;
 }
 
 // ============================================================
@@ -1565,9 +1794,8 @@ function jumpCard(id) {
   if (!el) return;
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   var orig = el.style.boxShadow;
-  el.style.transition = 'box-shadow .15s';
-  el.style.boxShadow = '0 0 0 2px ' + (el.style.getPropertyValue('--sec-color') || '#f0703a') + '66';
-  setTimeout(function() { el.style.boxShadow = orig; }, 1400);
+  el.style.boxShadow = '0 0 0 2px ' + (el.style.getPropertyValue('--sec-color') || '#ff7847') + '88, 0 0 40px ' + (el.style.getPropertyValue('--sec-color') || '#ff7847') + '33';
+  setTimeout(function() { el.style.boxShadow = orig; }, 1500);
 }
 
 function jumpSection(id) {
@@ -1589,6 +1817,10 @@ function setActiveCmd(id) {
   document.querySelectorAll('.tcmd').forEach(function(e) { e.classList.remove('on'); });
   var c = document.getElementById('tcmd-' + id);
   if (c) c.classList.add('on');
+}
+
+function scrollTopMain() {
+  document.getElementById('main').scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ============================================================
@@ -1621,8 +1853,17 @@ document.getElementById('srchInput').addEventListener('input', function() {
   }
 });
 
+// "/" focuses the search box
+document.addEventListener('keydown', function(e) {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+    e.preventDefault();
+    document.getElementById('srchInput').focus();
+  }
+  if (e.key === 'Escape') document.getElementById('srchInput').blur();
+});
+
 // ============================================================
-//  SCROLL SPY
+//  SCROLL SPY + PROGRESS + BACK-TO-TOP
 // ============================================================
 var mainEl = document.querySelector('.main');
 mainEl.addEventListener('scroll', function() {
@@ -1639,7 +1880,84 @@ mainEl.addEventListener('scroll', function() {
 
   if (curSec) setActiveSection(curSec);
   if (curCmd) setActiveCmd(curCmd);
+
+  var max = mainEl.scrollHeight - mainEl.clientHeight;
+  document.getElementById('progress').style.width = (max > 0 ? (top / max) * 100 : 0) + '%';
+  document.getElementById('toTop').classList.toggle('show', top > 500);
 }, { passive: true });
+
+// ============================================================
+//  SCROLL REVEAL (cards + section headers)
+// ============================================================
+function setupReveal() {
+  if (!('IntersectionObserver' in window)) {
+    document.querySelectorAll('.card,.section').forEach(function(el) { el.classList.add('seen'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries) {
+    entries.forEach(function(en) {
+      if (en.isIntersecting) {
+        en.target.classList.add('seen');
+        io.unobserve(en.target);
+      }
+    });
+  }, { root: mainEl, threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.card,.section').forEach(function(el) { io.observe(el); });
+}
+
+// ============================================================
+//  CARD SPOTLIGHT (cursor-tracked glow)
+// ============================================================
+mainEl.addEventListener('mousemove', function(e) {
+  var card = e.target.closest ? e.target.closest('.card') : null;
+  if (!card) return;
+  var r = card.getBoundingClientRect();
+  card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+  card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+}, { passive: true });
+
+// ============================================================
+//  HERO: TYPING TERMINAL + COUNT-UP STATS
+// ============================================================
+var PHRASES = [
+  'git commit -m "ship it"',
+  'git switch -c feature/awesome',
+  'git rebase -i HEAD~3',
+  'git push --force-with-lease',
+  'git reflog  # nothing is ever lost',
+  'git bisect run npm test'
+];
+(function typeLoop() {
+  var el = document.getElementById('typed');
+  var pi = 0, ci = 0, deleting = false;
+  function tick() {
+    var p = PHRASES[pi];
+    if (!deleting) {
+      ci++;
+      el.textContent = p.slice(0, ci);
+      if (ci === p.length) { deleting = true; return setTimeout(tick, 2100); }
+      return setTimeout(tick, 42 + Math.random() * 60);
+    }
+    ci--;
+    el.textContent = p.slice(0, ci);
+    if (ci === 0) { deleting = false; pi = (pi + 1) % PHRASES.length; return setTimeout(tick, 450); }
+    setTimeout(tick, 18);
+  }
+  setTimeout(tick, 700);
+})();
+
+function countUp(id, target, ms) {
+  var el = document.getElementById(id);
+  var start = null;
+  function step(ts) {
+    if (!start) start = ts;
+    var t = Math.min((ts - start) / ms, 1);
+    var eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(target * eased);
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
 
 // ============================================================
 //  TOOLTIP ENGINE
@@ -1678,7 +1996,11 @@ document.addEventListener('mouseout', function(e) {
 //  INIT
 // ============================================================
 buildTree();
-buildMain();
+var TOTAL_CMDS = buildMain();
+setupReveal();
+countUp('statCmds', TOTAL_CMDS, 1400);
+countUp('statSecs', SECS.length, 1100);
+countUp('statExs', TOTAL_EX, 1700);
 </script>
 </body>
 </html>
